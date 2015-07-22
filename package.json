@@ -1,4 +1,5 @@
-{ "name": "pimatic-maxcul",
+{
+  "name": "pimatic-maxcul",
   "description": "A pimatic plugin to control the MAX! home heating solutions with a Busware CUL868 device.",
   "author": "Florian in der Beek <florian@idbtec.de> (http://idbtec.de)",
   "main": "maxcul",
@@ -9,13 +10,15 @@
   ],
   "version": "0.0.1",
   "homepage": "http://idbtec.de/maxcul",
-  "private": true,
+  "private": false,
   "repository": {
     "type": "git",
     "url": "git://github.com/fbeek/pimatic-maxcul.git"
   },
   "configSchema": "maxcul-config-schema.coffee",
   "dependencies": {
+    "hipack": "^1.0.4",
+    "serialport": "^1.7.4"
   },
   "peerDependencies": {
     "pimatic": "0.8.*"
