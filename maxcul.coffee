@@ -10,8 +10,6 @@ module.exports = (env) ->
   serialport = require 'serialport'
   SerialPort = serialport.SerialPort
 
-
-
   class MaxculPlugin extends env.plugins.Plugin
 
     #Holds the communication layer instance
