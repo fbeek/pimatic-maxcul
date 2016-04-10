@@ -25,6 +25,7 @@ module.exports = {
   MaxculHeatingThermostat:{
     title: "Config options for the Maxcul HeatingThermostat"
     type: "object"
+    extensions: ["xAttributeOptions"]
     properties: {
       id:
         description: "ID of the Device"
@@ -50,16 +51,28 @@ module.exports = {
         description: "The defined eco mode temperature"
         type: "number"
         default: 17
-      guiShowTemperatueInput:
-        description: "Show the temperature input spinbox in the gui"
-        type: "boolean"
-        default: true
       guiShowModeControl:
         description: "Show the mode buttons in the gui"
         type: "boolean"
         default: true
       guiShowPresetControl:
         description: "Show the preset temperatures in the gui"
+        type: "boolean"
+        default: true
+      guiShowTemperatureInput:
+        description: "Show the temperature input spinbox in the gui"
+        type: "boolean"
+        default: true
+      guiShowValvePosition:
+        description: "Show the valve position in the gui"
+        type: "boolean"
+        default: false
+      guiShowMeasuredTemperature:
+        description: "Show the measured temperature in the gui"
+        type: "boolean"
+        default: true
+      guiShowBatteryState:
+        description: "Show the measured temperature in the gui"
         type: "boolean"
         default: true
     }
