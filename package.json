@@ -5,8 +5,11 @@
   "main": "maxcul",
   "files": [
     "maxcul.coffee",
-    "README.md",
-    "maxcul-config-schema.coffee"
+    "maxcul-config-schema.coffee",
+    "communication-layer.coffee",
+    "max-driver.coffee",
+    "maxcul-device-config-schema.coffee",
+    "app/*"
   ],
   "version": "0.2.0",
   "homepage": "http://idbtec.de/maxcul",
