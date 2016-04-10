@@ -4,6 +4,7 @@ module.exports = (env) ->
   HiPack = require 'hipack'
   BitSet = require 'bitset.js'
   Promise = env.require 'bluebird'
+  Moment = env.require 'moment'
 
   class MaxDriver extends EventEmitter
 
@@ -78,10 +79,13 @@ module.exports = (env) ->
     handleIncommingMessage: (message) ->
       packet = @parseIncommingMessage(message)
       if (packet)
-        if ( packet.decodedCmd )
-          @[packet.decodedCmd](packet)
+        if (packet.src == @baseAddress)
+          env.logger.debug "ignored auto-ack packet"
         else
-          env.logger.debug "received unknown command id #{packet.msgTypeRaw}"
+          if ( packet.decodedCmd )
+            @[packet.decodedCmd](packet)
+          else
+            env.logger.debug "received unknown command id #{packet.msgTypeRaw}"
       else
         env.logger.debug "message was no valid MAX! paket."
 
@@ -238,7 +242,7 @@ module.exports = (env) ->
         isOpen : rawBitData.get(1)
         rfError :rawBitData.get(6)
         batteryLow :rawBitData.get(7)
-      env.logger.debug "got data from shutter constact #{packet.src} #{rawBitData.toString()}"
+      env.logger.debug "got data from shutter contact #{packet.src} #{rawBitData.toString()}"
       @.emit('ShutterContactStateRecieved',packet)
 
     ThermostatState: (packet) ->

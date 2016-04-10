@@ -9,10 +9,12 @@ module.exports = (env) ->
     @_messageQueue = []
     @_current
     @_busy = false
+    @_baseAddress
 
-    constructor: (baudrate, serialPortName, @cmdReceiver) ->
+    constructor: (baudrate, serialPortName, @cmdReceiver, baseAddress) ->
       env.logger.info("using serial device #{serialPortName}@#{baudrate}")
       env.logger.info "trying to open serialport..."
+      @_baseAddress = baseAddress
       @_serialDeviceInstance = new SerialPort serialPortName,
         {
           baudrate: baudrate,
@@ -39,7 +41,7 @@ module.exports = (env) ->
           @_serialDeviceInstance.write('V\n')
           env.logger.info "enable MAX! Mode of the CUL868"
           # enable the receiving of MAX messages
-          @_serialDeviceInstance.write('Zr\n')
+          @_serialDeviceInstance.write('Zr\nZa'+@_baseAddress+'\n')
 
       @_serialDeviceInstance.on 'error', (err) ->
         env.logger.error "serialport communication error #{err}"

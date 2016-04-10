@@ -32,7 +32,7 @@ module.exports = (env) ->
         MaxculHeatingThermostat
       ]
 
-      @comLayer = new CommunicationServiceLayer baudrate, serialPortName, @commandReceiveCallback
+      @comLayer = new CommunicationServiceLayer baudrate, serialPortName, @commandReceiveCallback, baseAddress
       @maxDriver = new MaxDriver baseAddress, @comLayer
       @availableDevices = []
 
@@ -197,7 +197,7 @@ module.exports = (env) ->
           if(@deviceId == packet.src)
             #TODO: WE NEED TO GIVE BACK A STATE IF THE PACKET WAS HANDLED
             # If the window is open the isOpen field is true the contact is open = false
-            @_setContact(if packet.data.isOpen then false else true)
+            @_setContact(if packet.data.isOpen then true else false)
             @_setBattery(packet.data.batteryLow)
             env.logger.debug "ShutterContact with deviceId #{@deviceId} updated"
         )
