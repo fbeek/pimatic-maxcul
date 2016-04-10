@@ -66,7 +66,7 @@ module.exports = {
       guiShowValvePosition:
         description: "Show the valve position in the gui"
         type: "boolean"
-        default: true
+        default: false
       guiShowMeasuredTemperature:
         description: "Show the measured temperature in the gui"
         type: "boolean"
