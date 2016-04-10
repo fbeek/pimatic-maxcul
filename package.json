@@ -8,7 +8,7 @@
     "README.md",
     "maxcul-config-schema.coffee"
   ],
-  "version": "0.2.0",
+  "version": "0.2.5",
   "homepage": "http://idbtec.de/maxcul",
   "private": false,
   "repository": {
