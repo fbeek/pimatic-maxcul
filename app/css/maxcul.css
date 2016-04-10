@@ -1,0 +1,7 @@
+.maxcul .attributes {
+  clear: both;
+}
+
+#index.locked li.thermostat.maxcul div.controls{
+  margin-bottom: 0px;
+}

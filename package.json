@@ -17,7 +17,7 @@
   },
   "configSchema": "maxcul-config-schema.coffee",
   "dependencies": {
-    "bit-array": "^0.2.2",
+    "bitset.js": "^3.1.0",
     "hipack": "^1.0.4",
     "serialport": "^1.7.4"
   },
