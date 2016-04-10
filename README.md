@@ -62,7 +62,7 @@ messages, decodes them and prints them to the console or log as debuging informa
 sensor. Also you can pair the heating thermostats so that they can get the time informations from the
 pimatic system an set the mode (auto/boost/manuel) and switch between the comfy and eco temperature.
 
-* v2.5.0
+* v0.2.5
 
     This Version enables the user to use the thermostat heating elements. You can now set the desired temperature, the mode, show the battery state and the measured temperature in the pimatic frontend
 
