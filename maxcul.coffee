@@ -33,7 +33,7 @@ module.exports = (env) ->
       ]
 
       @comLayer = new CommunicationServiceLayer baudrate, serialPortName, @commandReceiveCallback, baseAddress
-      @maxDriver = new MaxDriver baseAddress, @comLayer
+      @maxDriver = new MaxDriver baseAddress, @comLayer, config.enablePairMode
       @availableDevices = []
 
       for DeviceClass in deviceTypeClasseNames
@@ -54,9 +54,9 @@ module.exports = (env) ->
           mobileFrontend.registerAssetFile 'js', "pimatic-maxcul/app/js/index.coffee"
           mobileFrontend.registerAssetFile 'css', "pimatic-maxcul/app/css/maxcul.css"
           mobileFrontend.registerAssetFile 'html', "pimatic-maxcul/app/views/maxcul-heating-thermostat.jade"
-          env.logger.warn "templates loaded"
+          env.logger.debug "templates loaded"
         else
-          env.logger.warn "your plugin could not find the mobile-frontend. No gui will be available"
+          env.logger.warn "maxcul could not find the mobile-frontend. No gui will be available"
 
     commandReceiveCallback: (cmdString) =>
       @maxDriver.handleIncommingMessage(cmdString)

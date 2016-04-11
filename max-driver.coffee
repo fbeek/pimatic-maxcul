@@ -20,11 +20,13 @@ module.exports = (env) ->
     ]
     @_waitingForReplyQueue = []
     @msgCount
+    @pairModeEnabled
 
-    constructor: (baseAddress,comLayer) ->
+    constructor: (baseAddress,comLayer,pairModeEnabled) ->
       @baseAddress = baseAddress
       @comLayer = comLayer
       @msgCount = 0
+      @pairModeEnabled = pairModeEnabled
 
       setTimeout( =>
         @.emit('checkTimeIntervalFired')
@@ -212,20 +214,20 @@ module.exports = (env) ->
 
     PairPing: (packet) ->
       env.logger.debug "handling PairPing packet"
-      packet.decodedPayload = HiPack.unpack("Cfirmware/Ctype/Ctest/a*serial",HiPack.pack("H*",packet.rawPayload))
-
-      if (packet.dest != "000000" && packet.forMe != true)
-        #Pairing Command is not for us
-        env.logger.debug "handled PairPing packet is not for us"
-        return
-      else if ( packet.forMe ) #The device only wants to repair
-        env.logger.debug "beginn repairing with device #{packet.src}"
-        @sendMsg("01",@baseAddress,packet.src,"00","00","00")
-      else if ( packet.dest == "000000" ) #The device is new and needs a full pair
-        #@TODO we need a global pairMode switch in the UI that should auto disable after a few minutes
-        #check the device type, eventually we need to send information to the device
-        env.logger.debug "beginn pairing of a new device with deviceId #{packet.src}"
-        @sendMsg("01",@baseAddress,packet.src,"00","00","00")
+      if(@pairModeEnabled)
+        packet.decodedPayload = HiPack.unpack("Cfirmware/Ctype/Ctest/a*serial",HiPack.pack("H*",packet.rawPayload))
+        if (packet.dest != "000000" && packet.forMe != true)
+          #Pairing Command is not for us
+          env.logger.debug "handled PairPing packet is not for us"
+          return
+        else if ( packet.forMe ) #The device only wants to repair
+          env.logger.debug "beginn repairing with device #{packet.src}"
+          @sendMsg("01",@baseAddress,packet.src,"00","00","00")
+        else if ( packet.dest == "000000" ) #The device is new and needs a full pair
+          env.logger.debug "beginn pairing of a new device with deviceId #{packet.src}"
+          @sendMsg("01",@baseAddress,packet.src,"00","00","00")
+      else
+          env.logger.debug "but pairing is disabled"
 
     Ack: (packet) ->
       temp = HiPack.unpack("C",HiPack.pack("H*",packet.rawPayload))
