@@ -13,5 +13,9 @@ module.exports = {
     homebaseAddress:
       doc: "The Address of this basestation in the MAX! System Default (123456)"
       type: "string"
-      "default": '123456'
+      default: "123456"
+    enablePairMode:
+      doc: "Enabled the pair mode, should be false for production because it could interfere with your neighbours"
+      type: "boolean"
+      default: false
 }
