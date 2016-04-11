@@ -68,7 +68,7 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
     This Version enables the user to use the thermostat heating elements. You can now set the desired temperature, the mode, show the battery state and the measured temperature in the pimatic frontend
 
-* v0.2.8
+* v0.2.9
 
     Now you can disable or enable the pair feature. So you can lock your system against foreign devices
 
