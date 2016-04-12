@@ -17,9 +17,9 @@ If you start pimatic with the plugin enable you can enable the debug mode in the
 Example Plugin Configuration
 
     {
-      "plugin": "maxcul"
-      "serialPortName": "/dev/ttyACM0"
-      "homebaseAddress": "123456"
+      "plugin": "maxcul",
+      "serialPortName": "/dev/ttyACM0",
+      "homebaseAddress": "123456",
       "enablePairMode": false,
       "baudrate": 9600
     }
