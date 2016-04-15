@@ -34,6 +34,7 @@ $(document).on( "templateinit", (event) ->
       @boostButton = $(elements).find('[name=boostButton]')
       @ecoButton = $(elements).find('[name=ecoButton]')
       @comfyButton = $(elements).find('[name=comfyButton]')
+      @offButton = $(elements).find('[name=offButton]')
       # @vacButton = $(elements).find('[name=vacButton]')
       @input = $(elements).find('.spinbox input')
       @valvePosition = $(elements).find('.valve-position-bar')
@@ -54,6 +55,7 @@ $(document).on( "templateinit", (event) ->
     modeBoost: -> @changeModeTo "boost"
     modeEco: -> @changeTemperatureTo "#{@device.config.ecoTemp}"
     modeComfy: -> @changeTemperatureTo "#{@device.config.comfyTemp}"
+    modeOff: -> @changeTemperatureTo "4.5"
     modeVac: -> @changeTemperatureTo "#{@device.config.vacTemp}"
     setTemp: -> @changeTemperatureTo "#{@inputValue.value()}"
 
@@ -81,13 +83,21 @@ $(document).on( "templateinit", (event) ->
         @boostButton.removeClass('ui-btn-active')
         @ecoButton.addClass('ui-btn-active')
         @comfyButton.removeClass('ui-btn-active')
+        @offButton.removeClass('ui-btn-active')
       else if parseFloat(@stAttr.value()) is parseFloat("#{@device.config.comfyTemp}")
         @boostButton.removeClass('ui-btn-active')
         @ecoButton.removeClass('ui-btn-active')
         @comfyButton.addClass('ui-btn-active')
+        @offButton.removeClass('ui-btn-active')
+      else if parseFloat(@stAttr.value()) is 4.5
+        @boostButton.removeClass('ui-btn-active')
+        @ecoButton.removeClass('ui-btn-active')
+        @comfyButton.removeClass('ui-btn-active')
+        @offButton.addClass('ui-btn-active')
       else
         @ecoButton.removeClass('ui-btn-active')
         @comfyButton.removeClass('ui-btn-active')
+        @offButton.removeClass('ui-btn-active')
       return
 
     updateValvePosition: ->
@@ -104,12 +114,18 @@ $(document).on( "templateinit", (event) ->
         .fail(ajaxAlertFail)
 
     changeTemperatureTo: (temperatureSetpoint) ->
-      @input.spinbox('disable')
-      @device.rest.changeTemperatureTo({temperatureSetpoint}, global: no)
-        .done(ajaxShowToast)
-        .fail(ajaxAlertFail)
-        .always( => @input.spinbox('enable') )
-        # register the item-class
-        
+      temp = parseFloat(temperatureSetpoint)
+      if(!isNaN(temp))
+        if(temp >= 4.5 && temp <= 30.5)
+          @input.spinbox('disable')
+          @device.rest.changeTemperatureTo({temperatureSetpoint}, global: no)
+            .done(ajaxShowToast)
+            .fail(ajaxAlertFail)
+            .always( => @input.spinbox('enable') )
+        else
+          pimatic.showToast("Input is not valid, it must be between 4.5 (off) and 30.5 (full on)")
+      else
+        pimatic.showToast("Input is not valid, it must be between 4.5 (off) and 30.5 (full on)")
+  # register the item-class
   pimatic.templateClasses['maxcul-heating-thermostat'] = MaxCulThermostatItem
 )
