@@ -72,6 +72,9 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
     Now you can disable or enable the pair feature. So you can lock your system against foreign devices
 
+* v0.3.0
+
+    There is now an "off"-Button so that we can set the heating thermostat to off with one click. Also there is now a better input checking for the temperature input with an info message if the input is out of range. The input must be between 4.5 (off) and 30.5 (full on).
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
