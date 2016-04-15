@@ -34,6 +34,7 @@ $(document).on( "templateinit", (event) ->
       @boostButton = $(elements).find('[name=boostButton]')
       @ecoButton = $(elements).find('[name=ecoButton]')
       @comfyButton = $(elements).find('[name=comfyButton]')
+      @offButton = $(elements).find('[name=offButton]')
       # @vacButton = $(elements).find('[name=vacButton]')
       @input = $(elements).find('.spinbox input')
       @valvePosition = $(elements).find('.valve-position-bar')
@@ -82,13 +83,21 @@ $(document).on( "templateinit", (event) ->
         @boostButton.removeClass('ui-btn-active')
         @ecoButton.addClass('ui-btn-active')
         @comfyButton.removeClass('ui-btn-active')
+        @offButton.removeClass('ui-btn-active')
       else if parseFloat(@stAttr.value()) is parseFloat("#{@device.config.comfyTemp}")
         @boostButton.removeClass('ui-btn-active')
         @ecoButton.removeClass('ui-btn-active')
         @comfyButton.addClass('ui-btn-active')
+        @offButton.removeClass('ui-btn-active')
+      else if parseFloat(@stAttr.value()) is 4.5
+        @boostButton.removeClass('ui-btn-active')
+        @ecoButton.removeClass('ui-btn-active')
+        @comfyButton.removeClass('ui-btn-active')
+        @offButton.addClass('ui-btn-active')
       else
         @ecoButton.removeClass('ui-btn-active')
         @comfyButton.removeClass('ui-btn-active')
+        @offButton.removeClass('ui-btn-active')
       return
 
     updateValvePosition: ->
