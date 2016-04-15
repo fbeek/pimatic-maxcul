@@ -114,12 +114,18 @@ $(document).on( "templateinit", (event) ->
         .fail(ajaxAlertFail)
 
     changeTemperatureTo: (temperatureSetpoint) ->
-      @input.spinbox('disable')
-      @device.rest.changeTemperatureTo({temperatureSetpoint}, global: no)
-        .done(ajaxShowToast)
-        .fail(ajaxAlertFail)
-        .always( => @input.spinbox('enable') )
-        # register the item-class
-
+      temp = parseFloat(temperatureSetpoint)
+      if(!isNaN(temp))
+        if(temp >= 4.5 && temp <= 30.5)
+          @input.spinbox('disable')
+          @device.rest.changeTemperatureTo({temperatureSetpoint}, global: no)
+            .done(ajaxShowToast)
+            .fail(ajaxAlertFail)
+            .always( => @input.spinbox('enable') )
+        else
+          pimatic.showToast("Input is not valid, it must be between 4.5 (off) and 30.5 (full on)")
+      else
+        pimatic.showToast("Input is not valid, it must be between 4.5 (off) and 30.5 (full on)")
+  # register the item-class
   pimatic.templateClasses['maxcul-heating-thermostat'] = MaxCulThermostatItem
 )

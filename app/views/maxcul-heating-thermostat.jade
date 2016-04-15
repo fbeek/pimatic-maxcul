@@ -23,7 +23,7 @@ script#maxcul-heating-thermostat-template(type='text/template')
         <!-- /ko -->
         <!-- ko if: $data.getConfig('guiShowTemperatureInput') -->
         .spinbox.no-carousel-slide
-          input(type='text', data-role='spinbox', name='spin', value='0', min='4.5', max='30.5', data-mini='true', step='0.5', data-bind='textInput: inputValue')
+          input(type='text', data-role='spinbox', name='spin', value='4.5', min='4.5', max='30.5', data-mini='true', step='0.5', data-bind='textInput: inputValue')
         <!-- /ko -->
     .attributes
       <!-- ko if: $data.getConfig('guiShowMeasuredTemperature') -->
