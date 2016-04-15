@@ -54,6 +54,7 @@ $(document).on( "templateinit", (event) ->
     modeBoost: -> @changeModeTo "boost"
     modeEco: -> @changeTemperatureTo "#{@device.config.ecoTemp}"
     modeComfy: -> @changeTemperatureTo "#{@device.config.comfyTemp}"
+    modeOff: -> @changeTemperatureTo "4.5"
     modeVac: -> @changeTemperatureTo "#{@device.config.vacTemp}"
     setTemp: -> @changeTemperatureTo "#{@inputValue.value()}"
 
@@ -110,6 +111,6 @@ $(document).on( "templateinit", (event) ->
         .fail(ajaxAlertFail)
         .always( => @input.spinbox('enable') )
         # register the item-class
-        
+
   pimatic.templateClasses['maxcul-heating-thermostat'] = MaxCulThermostatItem
 )

@@ -18,7 +18,8 @@ script#maxcul-heating-thermostat-template(type='text/template')
         .button-control.ui-controlgroup.ui-controlgroup-horizontal.ui-corner-all.ui-mini.no-carousel-slide(data-role='controlgroup', data-type='horizontal', data-mini='true', data-enhanced='true')
           .ui-controlgroup-controls
             a.ui-first-child.ui-btn.ui-corner-all(name='ecoButton', data-bind='click: modeEco') eco
-            a.ui-last-child.ui-btn.ui-corner-all(name='comfyButton', data-bind='click: modeComfy') comfy
+            a.ui-btn.ui-corner-all(name='comfyButton', data-bind='click: modeComfy') comfy
+            a.ui-last-child.ui-btn.ui-corner-all(name='offButton', data-bind='click: modeOff') off
         <!-- /ko -->
         <!-- ko if: $data.getConfig('guiShowTemperatureInput') -->
         .spinbox.no-carousel-slide
