@@ -239,11 +239,11 @@ module.exports = (env) ->
         env.logger.debug "got ACK Error (Invalid command/argument) from #{packet.src} with payload #{packet.decodedPayload}"
 
     ShutterContactState: (packet) ->
-      rawBitData = new BitSet(packet.rawPayload);
+      rawBitData = new BitSet('0x'+packet.rawPayload)
       packet.data =
         isOpen : rawBitData.get(1)
-        rfError :rawBitData.get(6)
-        batteryLow :rawBitData.get(7)
+        rfError : rawBitData.get(6)
+        batteryLow : rawBitData.get(7)
       env.logger.debug "got data from shutter contact #{packet.src} #{rawBitData.toString()}"
       @.emit('ShutterContactStateRecieved',packet)
 
