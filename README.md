@@ -75,6 +75,11 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 * v0.3.0
 
     There is now an "off"-Button so that we can set the heating thermostat to off with one click. Also there is now a better input checking for the temperature input with an info message if the input is out of range. The input must be between 4.5 (off) and 30.5 (full on).
+
+* v0.3.1
+
+    Fixed a bug witch prevents the shutter contacts from updating
+
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules

@@ -75,6 +75,10 @@ module.exports = {
         description: "Show the measured temperature in the gui"
         type: "boolean"
         default: true
+      guiShowConfigButton:
+        description: "Show a button which which when pressed, transfers the config (eco Mode Settings etc.) to the device."
+        type: "boolean"
+        default: false
     }
   }
 }
