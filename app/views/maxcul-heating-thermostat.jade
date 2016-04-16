@@ -25,6 +25,11 @@ script#maxcul-heating-thermostat-template(type='text/template')
         .spinbox.no-carousel-slide
           input(type='text', data-role='spinbox', name='spin', value='4.5', min='4.5', max='30.5', data-mini='true', step='0.5', data-bind='textInput: inputValue')
         <!-- /ko -->
+        <!-- ko if: $data.getConfig('guiShowConfigButton') -->
+        .button-control.ui-controlgroup.ui-controlgroup-horizontal.ui-corner-all.ui-mini.no-carousel-slide(data-role='controlgroup', data-type='horizontal', data-mini='true', data-enhanced='true')
+          .ui-controlgroup-controls
+            a.ui-first-child.ui-last-child.ui-btn.ui-corner-all(name='transferConfigButton', data-bind='click: writeConfigToDevice') transfer config
+        <!-- /ko -->
     .attributes
       <!-- ko if: $data.getConfig('guiShowMeasuredTemperature') -->
       span.measured-temperature(data-bind="template: {name: 'attribute-template', data: $data.device.getAttribute('measuredTemperature'), afterRender: $data.afterAttributeRender }")

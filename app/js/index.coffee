@@ -59,6 +59,11 @@ $(document).on( "templateinit", (event) ->
     modeVac: -> @changeTemperatureTo "#{@device.config.vacTemp}"
     setTemp: -> @changeTemperatureTo "#{@inputValue.value()}"
 
+    writeConfigToDevice: ->
+      @device.rest.transferConfigToDevice()
+        .done(ajaxShowToast)
+        .fail(ajaxAlertFail)
+
     updateButtons: ->
       modeAttr = @getAttribute('mode')?.value()
       switch modeAttr

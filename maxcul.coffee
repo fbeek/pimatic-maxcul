@@ -98,6 +98,10 @@ module.exports = (env) ->
         @_measuredTemperature = lastState?.measuredTemperature?.value
         @_lastSendTime = 0
 
+        @actions['transferConfigToDevice'] =
+          params:{}
+
+        console.log(  @actions)
         for Attribute in @extendetAttributes
           do (Attribute) =>
             @addAttribute(Attribute.name,Attribute.settings)
@@ -160,6 +164,10 @@ module.exports = (env) ->
           @_setSetpoint(temperatureSetpoint)
         )
 
+      transferConfigToDevice: () ->
+        env.logger.info "begin config transfer to device #{@_deviceId}"
+        Promise.resolve()
+
       getEcoTemperature: () -> Promise.resolve(@_ecoTemperature)
       getComfortTemperature: () -> Promise.resolve(@_comfortTemperature)
       getMeasuredTemperature: () -> Promise.resolve(@_measuredTemperature)
@@ -195,7 +203,6 @@ module.exports = (env) ->
 
         @maxDriver.on('ShutterContactStateRecieved',(packet) =>
           if(@deviceId == packet.src)
-            #TODO: WE NEED TO GIVE BACK A STATE IF THE PACKET WAS HANDLED
             # If the window is open the isOpen field is true the contact is open = false
             @_setContact(if packet.data.isOpen then true else false)
             @_setBattery(packet.data.batteryLow)
