@@ -73,6 +73,14 @@ module.exports = (env) ->
       _deviceId : "000000"
       _timeInformationHour : ""
 
+      _comfortTemperature : 21
+      _ecoTemperature : 17
+      _minimumTemperature : 4.5
+      _maximumTemperature : 30.5
+      _measurementOffset : 0
+      _windowOpenTime : 30
+      _windowOpenTemperature : 4.5
+
       template: "maxcul-heating-thermostat"
 
       _measuredTemperature = 0
@@ -98,10 +106,17 @@ module.exports = (env) ->
         @_measuredTemperature = lastState?.measuredTemperature?.value
         @_lastSendTime = 0
 
+        @_comfortTemperature = @config.comfyTemp
+        @_ecoTemperature = @config.ecoTemp
+        @_minimumTemperature = @config.minimumTemperature
+        @_maximumTemperature = @config.maximumTemperature
+        @_measurementOffset = @config.measurementOffset
+        @_windowOpenTime = @config.windowOpenTime
+        @_windowOpenTemperature = @config.windowOpenTemperature
+
         @actions['transferConfigToDevice'] =
           params:{}
 
-        console.log(  @actions)
         for Attribute in @extendetAttributes
           do (Attribute) =>
             @addAttribute(Attribute.name,Attribute.settings)
@@ -165,8 +180,17 @@ module.exports = (env) ->
         )
 
       transferConfigToDevice: () ->
-        env.logger.info "begin config transfer to device #{@_deviceId}"
-        Promise.resolve()
+        env.logger.info "transfer config to device #{@_deviceId}"
+        return @maxDriver.sendConfig(
+            @_deviceId,
+            @_comfortTemperature,
+            @_ecoTemperature,
+            @_minimumTemperature,
+            @_maximumTemperature,
+            @_measurementOffset,
+            @_windowOpenTime,
+            @_windowOpenTemperature
+          )
 
       getEcoTemperature: () -> Promise.resolve(@_ecoTemperature)
       getComfortTemperature: () -> Promise.resolve(@_comfortTemperature)
@@ -204,7 +228,7 @@ module.exports = (env) ->
         @maxDriver.on('ShutterContactStateRecieved',(packet) =>
           if(@deviceId == packet.src)
             # If the window is open the isOpen field is true the contact is open = false
-            @_setContact(if packet.data.isOpen then true else false)
+            @_setContact(if packet.data.isOpen then false else true)
             @_setBattery(packet.data.batteryLow)
             env.logger.debug "ShutterContact with deviceId #{@deviceId} updated"
         )

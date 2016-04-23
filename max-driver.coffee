@@ -5,6 +5,7 @@ module.exports = (env) ->
   BitSet = require 'bitset.js'
   Promise = env.require 'bluebird'
   Moment = env.require 'moment'
+  Sprintf = require("sprintf-js").sprintf
 
   class MaxDriver extends EventEmitter
 
@@ -159,6 +160,19 @@ module.exports = (env) ->
       payload = @generateTimePayload()
       @sendMsg("03",@baseAddress,dest,payload,"00","04");
 
+    sendConfig: (dest,comfortTemperature,ecoTemperature,minimumTemperature,maximumTemperature,offset,windowOpenTime,windowOpenTemperature) ->
+      comfortTemperatureValue = Sprintf('%02x',(comfortTemperature*2))
+      ecoTemperatureValue = Sprintf('%02x',(ecoTemperature*2))
+      minimumTemperatureValue = Sprintf('%02x',(minimumTemperature*2))
+      maximumTemperaturenValue = Sprintf('%02x',(maximumTemperature*2))
+      offsetValue = Sprintf('%02x',((offset + 3.5)*2))
+      windowOpenTempValue = Sprintf('%02x',(windowOpenTemperature*2))
+      windowOpenTimeValue = Sprintf('%02x',(Math.ceil(windowOpenTime/5)))
+
+      payload = comfortTemperatureValue+ecoTemperatureValue+maximumTemperaturenValue+minimumTemperatureValue+offsetValue+windowOpenTempValue+windowOpenTimeValue
+      @sendMsg("11",@baseAddress,dest,payload,"00","00")
+      return Promise.resolve true
+
     sendDesiredTemperature: (dest,temperature,mode,groupId) ->
       modeBin = switch mode
         when 'auto'
@@ -198,10 +212,6 @@ module.exports = (env) ->
         @sendMsg("40",@baseAddress,dest,payloadHex,"00","00");
       else
         @sendMsg("40",@baseAddress,dest,payloadHex,groupId,"04");
-      #else if temperature == 'eco'
-      #else if temperature == 'boost'
-      #else if temperature == 'comfort'
-      #
 
       return Promise.resolve true
 

@@ -79,6 +79,26 @@ module.exports = {
         description: "Show a button which which when pressed, transfers the config (eco Mode Settings etc.) to the device."
         type: "boolean"
         default: false
+      minimumTemperature:
+        description: "The defined minimum temperature that can be set ON THE DEVICE ITSELF"
+        type: "number"
+        default: 4.5
+      maximumTemperature:
+        description: "The defined maximum temperature that can be set ON THE DEVICE ITSELF"
+        type: "number"
+        default: 30.5
+      measurementOffset:
+        description: "The defined measurement offset"
+        type: "number"
+        default: 0
+      windowOpenTime:
+        description: "The defined time for the window open mode"
+        type: "number"
+        default: 30
+      windowOpenTemperature:
+        description: "The defined window open temperature mode temperature"
+        type: "number"
+        default: 4.5
     }
   }
 }
