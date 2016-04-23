@@ -46,8 +46,14 @@ Example device Configuration heating thermostat
       "guiShowTemperatureInput": true,
       "guiShowMeasuredTemperature": true,
       "guiShowBatteryState": true,
+      "guiShowConfigButton": true,
       "ecoTemp": 17,
-      "comfyTemp": 20
+      "comfyTemp": 20,
+      "minimumTemperature": 4.5,
+      "maximumTemperature": 30.5,
+      "measurementOffset": 0,
+      "windowOpenTime": 60,
+      "windowOpenTemperature": 4.5
     },
 
 Changelog
@@ -78,7 +84,11 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
 * v0.3.1
 
-    Fixed a bug witch prevents the shutter contacts from updating
+    Fixed a bug witch prevents the shutter contacts from updating.
+
+* v0.4.0
+
+    You can now define some default values for each heating thermostat that can be written wirelessly to the device itself. So you can set a min and max temperature in the device.If this is set, a user can only set a value between this value if he is setting the temperature physically on the device itself. You can set this value in the device config and enable a transmit button in the frontend.If this is clicked the data where transfered to the device. Also this version fixed a bug witch sets the shutter contact to a wrong value.
 
 ToDo
 -------
