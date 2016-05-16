@@ -11,7 +11,7 @@
     "maxcul-device-config-schema.coffee",
     "app/*"
   ],
-  "version": "0.4.0",
+  "version": "0.4.1",
   "homepage": "http://idbtec.de/maxcul",
   "private": false,
   "repository": {
