@@ -102,7 +102,7 @@ module.exports = (env) ->
         @_deviceId = @config.deviceId.toLowerCase()
         @_mode = lastState?.mode?.value or "auto"
         @_battery = lastState?.battery?.value or "ok"
-        @_temperatureSetpoint = lastState?.temperatureSetpoint?.value or "17"
+        @_temperatureSetpoint = lastState?.temperatureSetpoint?.value or 17
         @_measuredTemperature = lastState?.measuredTemperature?.value
         @_lastSendTime = 0
 
@@ -157,7 +157,6 @@ module.exports = (env) ->
 
       changeModeTo: (mode) ->
         if @_mode is mode then return Promise.resolve true
-        temperatureSetpoint = @_temperatureSetpoint
 
         if mode is "auto"
           temperatureSetpoint = null
