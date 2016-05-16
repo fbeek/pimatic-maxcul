@@ -90,6 +90,10 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
     You can now define some default values for each heating thermostat that can be written wirelessly to the device itself. So you can set a min and max temperature in the device.If this is set, a user can only set a value between this value if he is setting the temperature physically on the device itself. You can set this value in the device config and enable a transmit button in the frontend.If this is clicked the data where transfered to the device. Also this version fixed a bug witch sets the shutter contact to a wrong value.
 
+* v0.4.1
+
+    Fixed a wrong type for an initial variable value
+
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
