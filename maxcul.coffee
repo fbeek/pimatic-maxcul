@@ -65,26 +65,14 @@ module.exports = (env) ->
     # Class that represents a MAX! HeatingThermostat
     class MaxculHeatingThermostat extends env.devices.HeatingThermostat
 
-      _decalcDays: ["Sat","Sun","Mon","Tue","Wed","Thu","Fri"]
-      _modes: ["auto", "manu", "temporary", "boost"]
-      _boostDurations: [0,5,10,15,20,25,30,60]
+      @_decalcDays: ["Sat","Sun","Mon","Tue","Wed","Thu","Fri"]
+      @_modes: ["auto", "manu", "temporary", "boost"]
+      @_boostDurations: [0,5,10,15,20,25,30,60]
 
-      _maxDriver: undefined
-      _deviceId : "000000"
-      _timeInformationHour : ""
-
-      _comfortTemperature : 21
-      _ecoTemperature : 17
-      _minimumTemperature : 4.5
-      _maximumTemperature : 30.5
-      _measurementOffset : 0
-      _windowOpenTime : 30
-      _windowOpenTemperature : 4.5
-
+      @deviceType: "HeatingThermostat"
       template: "maxcul-heating-thermostat"
 
-      _measuredTemperature = 0
-      extendetAttributes:[
+      _extendetAttributes:[
         {
           name: 'measuredTemperature'
           settings:
@@ -114,10 +102,12 @@ module.exports = (env) ->
         @_windowOpenTime = @config.windowOpenTime
         @_windowOpenTemperature = @config.windowOpenTemperature
 
+        @_timeInformationHour = ""
+
         @actions['transferConfigToDevice'] =
           params:{}
 
-        for Attribute in @extendetAttributes
+        for Attribute in @_extendetAttributes
           do (Attribute) =>
             @addAttribute(Attribute.name,Attribute.settings)
 
@@ -153,7 +143,7 @@ module.exports = (env) ->
 
       _updateTimeInformation: () ->
         env.logger.debug "Updating time information for deviceId #{@_deviceId}"
-        @maxDriver.sendTimeInformation(@_deviceId)
+        @maxDriver.sendTimeInformation(@_deviceId,@constructor.deviceType)
 
       changeModeTo: (mode) ->
         if @_mode is mode then return Promise.resolve true
@@ -163,7 +153,7 @@ module.exports = (env) ->
         else
           temperatureSetpoint = @_temperatureSetpoint
           env.logger.debug "Set desired mode to #{mode} for deviceId #{@_deviceId}"
-        return @maxDriver.sendDesiredTemperature(@_deviceId, temperatureSetpoint, mode, "00").then ( =>
+        return @maxDriver.sendDesiredTemperature(@_deviceId, temperatureSetpoint, mode, "00", @constructor.deviceType).then ( =>
           @_lastSendTime = new Date().getTime()
           @_setMode(mode)
           @_setSetpoint(temperatureSetpoint)
@@ -172,7 +162,7 @@ module.exports = (env) ->
       changeTemperatureTo: (temperatureSetpoint) ->
         if @_temperatureSetpoint is temperatureSetpoint then return Promise.resolve true
         env.logger.debug "Set desired temperature #{temperatureSetpoint} for deviceId #{@_deviceId}"
-        return @maxDriver.sendDesiredTemperature(@_deviceId, temperatureSetpoint, @_mode, "00").then( =>
+        return @maxDriver.sendDesiredTemperature(@_deviceId, temperatureSetpoint, @_mode, "00", @constructor.deviceType).then( =>
           @_lastSendTime = new Date().getTime()
           @_setSynced(false)
           @_setSetpoint(temperatureSetpoint)
@@ -188,7 +178,8 @@ module.exports = (env) ->
             @_maximumTemperature,
             @_measurementOffset,
             @_windowOpenTime,
-            @_windowOpenTemperature
+            @_windowOpenTemperature,
+            @constructor.deviceType
           )
 
       getEcoTemperature: () -> Promise.resolve(@_ecoTemperature)
@@ -200,17 +191,12 @@ module.exports = (env) ->
     # Class that represents a MAX! ShutterContact
     class MaxculShutterContact extends env.devices.ContactSensor
 
-      _battery: undefined
-
-      @deviceId = "000000"
-      @rfError = 0
-      @associatedDevices = ""
-      @paired = 0
+      @deviceType = "ShutterContact"
 
       constructor: (@config, lastState, @maxDriver) ->
         @id = config.id
         @name = config.name
-        @deviceId = config.deviceId.toLowerCase()
+        @_deviceId = config.deviceId.toLowerCase()
         @_contact = lastState?.contact?.value
         @_battery = lastState?.battery?.value
 
@@ -225,11 +211,11 @@ module.exports = (env) ->
         )
 
         @maxDriver.on('ShutterContactStateRecieved',(packet) =>
-          if(@deviceId == packet.src)
+          if(@_deviceId == packet.src)
             # If the window is open the isOpen field is true the contact is open = false
             @_setContact(if packet.data.isOpen then false else true)
             @_setBattery(packet.data.batteryLow)
-            env.logger.debug "ShutterContact with deviceId #{@deviceId} updated"
+            env.logger.debug "ShutterContact with deviceId #{@_deviceId} updated"
         )
         super()
 

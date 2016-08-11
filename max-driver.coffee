@@ -29,7 +29,7 @@ module.exports = (env) ->
       @msgCount = 0
       @pairModeEnabled = pairModeEnabled
 
-      setTimeout( =>
+      setInterval( =>
         @.emit('checkTimeIntervalFired')
       , 1000 * 60 * 60
       )
@@ -126,16 +126,27 @@ module.exports = (env) ->
       packet.rawPayload = data[7]
       packet.forMe = if @baseAddress == packet.dest then true else false
       packet.decodedCmd = @decodeCmdId(data[3])
-
+      console.log('+++++++++++++Received+++++++++++++++++',packet,'------------------------------------------');
       return packet
 
-    sendMsg: (cmdId,src,dest,payload,groupId,flags) =>
-      @msgCount = @msgCount + 1
-      temp = HiPack.unpack("H*",HiPack.pack("C",@msgCount))
+    sendMsg: (cmdId,src,dest,payload,groupId,flags, deviceType) =>
+      packet =
+        cmdId: cmdId
+        src: src
+        dest: dest
+        payload: payload
+        groupId: groupId
+        flags: flags
+        msgCount: @msgCount + 1
+        deviceType: deviceType
+
+      temp = HiPack.unpack("H*",HiPack.pack("C",packet.msgCount))
       data = temp[1]+flags+cmdId+src+dest+groupId+payload
       length = data.length/2
       length = HiPack.unpack("H*",HiPack.pack("C",length))
-      @comLayer.serialWrite(length[1]+data)
+
+      packet.preparedPacket = length[1]+data
+      @comLayer.addPacketToTransportQueue(packet)
 
 
     generateTimePayload: () ->
@@ -156,11 +167,11 @@ module.exports = (env) ->
       )
       return payload[1];
 
-    sendTimeInformation: (dest) ->
+    sendTimeInformation: (dest, deviceType) ->
       payload = @generateTimePayload()
-      @sendMsg("03",@baseAddress,dest,payload,"00","04");
+      @sendMsg("03",@baseAddress,dest,payload,"00","04",deviceType);
 
-    sendConfig: (dest,comfortTemperature,ecoTemperature,minimumTemperature,maximumTemperature,offset,windowOpenTime,windowOpenTemperature) ->
+    sendConfig: (dest,comfortTemperature,ecoTemperature,minimumTemperature,maximumTemperature,offset,windowOpenTime,windowOpenTemperature,deviceType) ->
       comfortTemperatureValue = Sprintf('%02x',(comfortTemperature*2))
       ecoTemperatureValue = Sprintf('%02x',(ecoTemperature*2))
       minimumTemperatureValue = Sprintf('%02x',(minimumTemperature*2))
@@ -170,10 +181,10 @@ module.exports = (env) ->
       windowOpenTimeValue = Sprintf('%02x',(Math.ceil(windowOpenTime/5)))
 
       payload = comfortTemperatureValue+ecoTemperatureValue+maximumTemperaturenValue+minimumTemperatureValue+offsetValue+windowOpenTempValue+windowOpenTimeValue
-      @sendMsg("11",@baseAddress,dest,payload,"00","00")
+      @sendMsg("11",@baseAddress,dest,payload,"00","00",deviceType)
       return Promise.resolve true
 
-    sendDesiredTemperature: (dest,temperature,mode,groupId) ->
+    sendDesiredTemperature: (dest,temperature,mode,groupId,deviceType) ->
       modeBin = switch mode
         when 'auto'
           '00'
@@ -209,9 +220,9 @@ module.exports = (env) ->
 
       #if a  groupid is given we set the flag to 04 to switch all devices in this group
       if groupId == "00"
-        @sendMsg("40",@baseAddress,dest,payloadHex,"00","00");
+        @sendMsg("40",@baseAddress,dest,payloadHex,"00","00",deviceType);
       else
-        @sendMsg("40",@baseAddress,dest,payloadHex,groupId,"04");
+        @sendMsg("40",@baseAddress,dest,payloadHex,groupId,"04",deviceType);
 
       return Promise.resolve true
 
@@ -232,10 +243,10 @@ module.exports = (env) ->
           return
         else if ( packet.forMe ) #The device only wants to repair
           env.logger.debug "beginn repairing with device #{packet.src}"
-          @sendMsg("01",@baseAddress,packet.src,"00","00","00")
+          @sendMsg("01",@baseAddress,packet.src,"00","00","00","")
         else if ( packet.dest == "000000" ) #The device is new and needs a full pair
           env.logger.debug "beginn pairing of a new device with deviceId #{packet.src}"
-          @sendMsg("01",@baseAddress,packet.src,"00","00","00")
+          @sendMsg("01",@baseAddress,packet.src,"00","00","00","")
       else
           env.logger.debug "but pairing is disabled"
 
@@ -244,6 +255,7 @@ module.exports = (env) ->
       packet.decodedPayload = temp[1]
       if( packet.decodedPayload == 1 )
         env.logger.debug "got OK-ACK Packet from #{packet.src}"
+        @comLayer.ackPacket()
       else
         #????
         env.logger.debug "got ACK Error (Invalid command/argument) from #{packet.src} with payload #{packet.decodedPayload}"
