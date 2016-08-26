@@ -7,13 +7,9 @@ module.exports = (env) ->
   HiPack = require 'hipack'
   BitSet = require 'bitset.js'
 
-  CommunicationServiceLayer = require('./communication-layer')(env)
   MaxDriver = require('./max-driver')(env)
 
   class MaxculPlugin extends env.plugins.Plugin
-
-    #Holds the communication layer instance
-    @comLayer
 
     #Hold the MAX Driver Service Class instance
     @maxDriver
@@ -22,8 +18,6 @@ module.exports = (env) ->
     @availableDevices
 
     init: (app, @framework, @config) =>
-      serialPortName = config.serialPortName
-      baudrate = config.baudrate
       baseAddress = config.homebaseAddress
 
       deviceConfigDef = require("./maxcul-device-config-schema")
@@ -32,8 +26,8 @@ module.exports = (env) ->
         MaxculHeatingThermostat
       ]
 
-      @comLayer = new CommunicationServiceLayer baudrate, serialPortName, @commandReceiveCallback, baseAddress
-      @maxDriver = new MaxDriver baseAddress, @comLayer, config.enablePairMode
+      @maxDriver = new MaxDriver(baseAddress, config.enablePairMode, config.serialPortName, config.baudrate)
+      @maxDriver.connect()
       @availableDevices = []
 
       for DeviceClass in deviceTypeClasseNames
@@ -57,10 +51,6 @@ module.exports = (env) ->
           env.logger.debug "templates loaded"
         else
           env.logger.warn "maxcul could not find the mobile-frontend. No gui will be available"
-
-    commandReceiveCallback: (cmdString) =>
-      @maxDriver.handleIncommingMessage(cmdString)
-
 
     # Class that represents a MAX! HeatingThermostat
     class MaxculHeatingThermostat extends env.devices.HeatingThermostat
@@ -120,14 +110,13 @@ module.exports = (env) ->
             @_updateTimeInformation()
         )
 
-        @maxDriver.on('ThermostatStateRecieved',(packet) =>
-          if(@_deviceId == packet.src)
-            @_setBattery(packet.data.batterylow)
-            @_setMode(@_modes[packet.data.mode])
-            @_setSetpoint(packet.data.desiredTemperature)
-            if( packet.data.measuredTemperature != 0)
-              @_setMeasuredTemperature(packet.data.measuredTemperature)
-
+        @maxDriver.on('ThermostatStateRecieved',(thermostatState) =>
+          if(@_deviceId == thermostatState.src)
+            @_setBattery(thermostatState.batterylow)
+            @_setMode(@constructor._modes[thermostatState.mode])
+            @_setSetpoint(thermostatState.desiredTemperature)
+            if( thermostatState.measuredTemperature != 0)
+              @_setMeasuredTemperature(thermostatState.measuredTemperature)
         )
         super()
 
@@ -210,11 +199,11 @@ module.exports = (env) ->
           }
         )
 
-        @maxDriver.on('ShutterContactStateRecieved',(packet) =>
-          if(@_deviceId == packet.src)
+        @maxDriver.on('ShutterContactStateRecieved',(shutterContactState) =>
+          if(@_deviceId == shutterContactState.src)
             # If the window is open the isOpen field is true the contact is open = false
-            @_setContact(if packet.data.isOpen then false else true)
-            @_setBattery(packet.data.batteryLow)
+            @_setContact(if shutterContactState.isOpen then false else true)
+            @_setBattery(shutterContactState.batteryLow)
             env.logger.debug "ShutterContact with deviceId #{@_deviceId} updated"
         )
         super()

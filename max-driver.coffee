@@ -7,10 +7,17 @@ module.exports = (env) ->
   Moment = env.require 'moment'
   Sprintf = require("sprintf-js").sprintf
 
+  CommunicationServiceLayer = require('./communication-layer')(env)
+  CulPacket = require('./culpacket')(env)
+
   class MaxDriver extends EventEmitter
 
+    #Holds the the base station adress
     @baseAddress
+    #Holds the instance of the communication-layer
     @comLayer
+
+    #Supportet device types
     @deviceTypes = [
       "Cube",
       "HeatingThermostat",
@@ -23,16 +30,30 @@ module.exports = (env) ->
     @msgCount
     @pairModeEnabled
 
-    constructor: (baseAddress,comLayer,pairModeEnabled) ->
+    constructor: (baseAddress, pairModeEnabled, serialPortName, baudrate) ->
       @baseAddress = baseAddress
-      @comLayer = comLayer
       @msgCount = 0
       @pairModeEnabled = pairModeEnabled
+
+      @comLayer = new CommunicationServiceLayer(baudrate, serialPortName, @baseAddress)
+      @comLayer.on("culDataReceived", (data) =>
+        @handleIncommingMessage(data)
+      )
+
+      @comLayer.on('culFirmwareVersion', (data) =>
+        env.logger.info "CUL FW Version: #{data}"
+      )
 
       setInterval( =>
         @.emit('checkTimeIntervalFired')
       , 1000 * 60 * 60
       )
+
+    connect: () ->
+      return @comLayer.connect()
+
+    disconnect: ->
+      return @comLayer.disconnect()
 
     decodeCmdId: (id) ->
       key = "cmd"+id
@@ -55,7 +76,7 @@ module.exports = (env) ->
         }
         cmd10 : "ConfigWeekProfile"
         cmd11 : "ConfigTemperatures"
-        cmd12 : "ConfigValve"
+        cmd12 : "ConfigValve" #use for boost duration
         cmd20 : "AddLinkPartner"
         cmd21 : "RemoveLinkPartner"
         cmd22 : "SetGroupId"
@@ -82,13 +103,13 @@ module.exports = (env) ->
     handleIncommingMessage: (message) ->
       packet = @parseIncommingMessage(message)
       if (packet)
-        if (packet.src == @baseAddress)
+        if (packet.getSource() == @baseAddress)
           env.logger.debug "ignored auto-ack packet"
         else
-          if ( packet.decodedCmd )
-            @[packet.decodedCmd](packet)
+          if ( packet.getCommand() )
+            @[packet.getCommand()](packet)
           else
-            env.logger.debug "received unknown command id #{packet.msgTypeRaw}"
+            env.logger.debug "received unknown command id #{packet.getRawType()}"
       else
         env.logger.debug "message was no valid MAX! paket."
 
@@ -103,9 +124,9 @@ module.exports = (env) ->
         env.logger.debug "cannot split packet"
         return false
 
+      packet = new CulPacket()
       # Decode packet length
-      packet =
-        length: parseInt(data[0],16) #convert hex to decimal
+      packet.setLength(parseInt(data[0],16)) #convert hex to decimal
 
       # Check Message length
       # We get a HEX Message from the CUL, so we have 2 Digits per Byte
@@ -113,41 +134,46 @@ module.exports = (env) ->
       # We also have a trailing 'Z' -> + 1
       # Because the length we get from the cul is calculated for the whole packet
       # and the length field is also hex we have to add two more digits for the calculation -> +2
-      if (2 * packet.length + 3 != message.length)
+      if (2 * packet.getLength() + 3 != message.length)
         env.logger.debug "packet length missmatch"
         return false
 
-      packet.msgCnt = parseInt(data[1],16)
-      packet.msgFlag = parseInt(data[2],16)
-      packet.groupid = parseInt(data[6],16)
-      packet.msgTypeRaw = data[3]
-      packet.src = data[4].toLowerCase()
-      packet.dest = data[5].toLowerCase()
-      packet.rawPayload = data[7]
-      packet.forMe = if @baseAddress == packet.dest then true else false
-      packet.decodedCmd = @decodeCmdId(data[3])
-      console.log('+++++++++++++Received+++++++++++++++++',packet,'------------------------------------------');
+      packet.setMessageCount(parseInt(data[1],16))
+      packet.setFlag(parseInt(data[2],16))
+      packet.setGroupId(parseInt(data[6],16))
+      packet.setRawType(data[3])
+      packet.setSource(data[4])
+      packet.setDest(data[5])
+      packet.setRawPayload(data[7])
+
+      if @baseAddress == packet.getDest()
+        packet.setForMe(true)
+      else
+        packet.setForMe(false)
+
+      packet.setCommand(@decodeCmdId(data[3]))
+      packet.setStatus('incomming')
       return packet
 
-    sendMsg: (cmdId,src,dest,payload,groupId,flags, deviceType) =>
-      packet =
-        cmdId: cmdId
-        src: src
-        dest: dest
-        payload: payload
-        groupId: groupId
-        flags: flags
-        msgCount: @msgCount + 1
-        deviceType: deviceType
+    sendMsg: (cmdId, src, dest, payload, groupId, flags, deviceType) =>
+      packet = new CulPacket()
+      packet.setCommand(cmdId)
+      packet.setSource(src)
+      packet.setDest(dest)
+      packet.setRawPayload(payload)
+      packet.setGroupId(groupId)
+      packet.setFlag(flags)
+      packet.setMessageCount(@msgCount + 1)
+      packet.setRawType(deviceType)
 
       temp = HiPack.unpack("H*",HiPack.pack("C",packet.msgCount))
       data = temp[1]+flags+cmdId+src+dest+groupId+payload
       length = data.length/2
       length = HiPack.unpack("H*",HiPack.pack("C",length))
 
-      packet.preparedPacket = length[1]+data
-      @comLayer.addPacketToTransportQueue(packet)
+      packet.setRawPacket(length[1]+data)
 
+      @comLayer.addPacketToTransportQueue(packet)
 
     generateTimePayload: () ->
       now = Moment()
@@ -236,46 +262,52 @@ module.exports = (env) ->
     PairPing: (packet) ->
       env.logger.debug "handling PairPing packet"
       if(@pairModeEnabled)
-        packet.decodedPayload = HiPack.unpack("Cfirmware/Ctype/Ctest/a*serial",HiPack.pack("H*",packet.rawPayload))
-        if (packet.dest != "000000" && packet.forMe != true)
+        packet.setDecodedPayload(HiPack.unpack("Cfirmware/Ctype/Ctest/a*serial",HiPack.pack("H*",packet.rawPayload)))
+        if (packet.getDest() != "000000" && packet.getForMe() != true)
           #Pairing Command is not for us
           env.logger.debug "handled PairPing packet is not for us"
           return
-        else if ( packet.forMe ) #The device only wants to repair
-          env.logger.debug "beginn repairing with device #{packet.src}"
-          @sendMsg("01",@baseAddress,packet.src,"00","00","00","")
-        else if ( packet.dest == "000000" ) #The device is new and needs a full pair
-          env.logger.debug "beginn pairing of a new device with deviceId #{packet.src}"
-          @sendMsg("01",@baseAddress,packet.src,"00","00","00","")
+        else if ( packet.getForMe() ) #The device only wants to repair
+          env.logger.debug "beginn repairing with device #{packet.getSource()}"
+          @sendMsg("01", @baseAddress, packet.getSource(), "00", "00", "00", "")
+        else if ( packet.getDest() == "000000" ) #The device is new and needs a full pair
+          env.logger.debug "beginn pairing of a new device with deviceId #{packet.getSource()}"
+          @sendMsg("01", @baseAddress, packet.getSource(), "00", "00", "00", "")
       else
-          env.logger.debug "but pairing is disabled"
+          env.logger.debug ", but pairing is disabled so ignore"
 
     Ack: (packet) ->
-      temp = HiPack.unpack("C",HiPack.pack("H*",packet.rawPayload))
-      packet.decodedPayload = temp[1]
-      if( packet.decodedPayload == 1 )
-        env.logger.debug "got OK-ACK Packet from #{packet.src}"
+      temp = HiPack.unpack("C",HiPack.pack("H*",packet.getRawPayload()))
+      packet.setDecodedPayload(temp[1])
+      if( packet.getDecodedPayload() == 1 )
+        env.logger.debug "got OK-ACK Packet from #{packet.getSource()}"
         @comLayer.ackPacket()
       else
         #????
-        env.logger.debug "got ACK Error (Invalid command/argument) from #{packet.src} with payload #{packet.decodedPayload}"
+        env.logger.debug "got ACK Error (Invalid command/argument) from #{packet.getSource()} with payload #{packet.decodedPayload}"
 
     ShutterContactState: (packet) ->
-      rawBitData = new BitSet('0x'+packet.rawPayload)
-      packet.data =
+      rawBitData = new BitSet('0x'+packet.getRawPayload())
+
+      shutterContactState =
+        src : packet.getSource()
         isOpen : rawBitData.get(1)
         rfError : rawBitData.get(6)
         batteryLow : rawBitData.get(7)
-      env.logger.debug "got data from shutter contact #{packet.src} #{rawBitData.toString()}"
-      @.emit('ShutterContactStateRecieved',packet)
+
+      env.logger.debug "got data from shutter contact #{packet.getSource()} #{rawBitData.toString()}"
+      @.emit('ShutterContactStateRecieved',shutterContactState)
 
     ThermostatState: (packet) ->
-      env.logger.debug "got data from heatingelement #{packet.src} with payload #{packet.rawPayload}"
-      if( packet.rawPayload.length >= 10)
-        if( packet.rawPayload.length == 10)
-          rawData = HiPack.unpack("Cbits/CvalvePosition/CdesiredTemp/CuntilOne/CuntilTwo",HiPack.pack("H*",packet.rawPayload));
+      env.logger.debug "got data from heatingelement #{packet.getSource()} with payload #{packet.getRawPayload()}"
+
+      rawPayload = packet.getRawPayload()
+
+      if( rawPayload.length >= 10)
+        if( rawPayload.length == 10)
+          rawData = HiPack.unpack("Cbits/CvalvePosition/CdesiredTemp/CuntilOne/CuntilTwo",HiPack.pack("H*",rawPayload));
         else
-          rawData = HiPack.unpack("Cbits/CvalvePosition/CdesiredTemp/CuntilOne/CuntilTwo/CuntilThree",HiPack.pack("H*",packet.rawPayload));
+          rawData = HiPack.unpack("Cbits/CvalvePosition/CdesiredTemp/CuntilOne/CuntilTwo/CuntilThree",HiPack.pack("H*",rawPayload));
 
         rawBitData = new BitSet(rawData.bits);
         rawMode = rawBitData.getRange(0,1);
@@ -294,7 +326,8 @@ module.exports = (env) ->
           untilString = timeData.dateString;
         #Todo: Implement offset handling
 
-        packet.data =
+        thermostatState =
+          src : packet.getSource()
           mode : rawMode[0]
           desiredTemperature : (rawData.desiredTemp&0x7F)/2.0
           valvePosition : rawData.valvePosition
@@ -306,13 +339,13 @@ module.exports = (env) ->
           batterylow : rawBitData.get(7)
           untilString : untilString
 
-        @.emit('ThermostatStateRecieved',packet)
+        @.emit('ThermostatStateRecieved',thermostatState)
       else
         env.logger.debug "payload to short ?";
 
     TimeInformation: (packet) ->
-      env.logger.debug "got time information request from device #{packet.src}"
-      @.emit('deviceRequestTimeInformation',packet.src)
+      env.logger.debug "got time information request from device #{packet.getSource()}"
+      @.emit('deviceRequestTimeInformation',packet.getSource())
 
     ParseDateTime: (byteOne,byteTwo,byteThree) ->
       timeData =
@@ -326,7 +359,6 @@ module.exports = (env) ->
         timeData.time = parseInt(time/2)+":30";
       else
         timeData.time = parseInt(time/2)+":00";
-
 
       timeData.dateString = timeData.day+'.'+timeData.month+'.'+timeData.year+' '+timeData.time
       return timeData;

@@ -9,92 +9,103 @@ module.exports = (env) ->
   Promise.promisifyAll(SerialPort.prototype)
 
   # This class represents the low level comminication interface
-  class CommunicationServiceLayer extends events.EventEmitter
+  class CommunicationServiceLayer extends EventEmitter
 
-    constructor: (baudrate, serialPortName, @cmdReceiver, @_baseAddress) ->
-      env.logger.info("using serial device #{serialPortName}@#{baudrate}")
+    constructor: (baudrate, serialPortName, @_baseAddress) ->
+      @serialPortName = serialPortName
+      env.logger.info("using serial device #{@serialPortName}@#{baudrate}")
       env.logger.info("trying to open serialport...")
 
       @_messageQueue = []
       @_sendMessages = []
       @_current = undefined
       @_busy = false
+      @_ackResolver = null
+      @_currentSentPromise = null
 
-      @_serialDeviceInstance = new SerialPort serialPortName, {
+      @_serialDeviceInstance = new SerialPort(serialPortName, {
           baudrate: baudrate,
           parser: serialport.parsers.readline("\n")
         }, openImmediately = no)
 
-    connect: (timeout, retries) ->
+    connect: () ->
       @ready = no
       @_serialDeviceInstance.removeAllListeners('error')
       @_serialDeviceInstance.removeAllListeners('data')
       @_serialDeviceInstance.removeAllListeners('close')
+      @removeAllListeners('newPacketForTransmission')
+      @removeAllListeners('readyForNextPacketTransmission')
 
       @_serialDeviceInstance.on 'error', (error) =>
         @emit('error', error)
         env.logger.error "serialport communication error #{err}"
 
-      @_serialDeviceInstance.on 'close', => @emit 'close'
+      @_serialDeviceInstance.on 'close', =>
+        @emit 'close'
+        @removeAllListeners('newPacketForTransmission')
+        @removeAllListeners('readyForNextPacketTransmission')
+
+      @on('newPacketForTransmission', =>
+        @processMessageQueue()
+      )
+
+      @on('readyForNextPacketTransmission', =>
+        @processMessageQueue()
+      )
 
       return @_serialDeviceInstance.openAsync().then( =>
+        resolver = null
+        timeout = 3000
+        if ( err? )
+          env.logger.info "opening serialPort #{@serialPortName} failed #{err}"
+        else
+          env.logger.info "serialPort #{@serialPortName} is open!"
+
         @_serialDeviceInstance.on 'data', (data) =>
+          env.logger.debug "incoming raw data from CUL: #{data}"
           dataString = "#{data}"
           dataString = dataString.replace(/[\r]/g, '')
 
           if (/V(.*)/.test(dataString))
-            env.logger.info "CUL FW Version: #{dataString}"
+            #data contains cul version string
+            @emit('culFirmwareVersion', dataString)
+            @ready = yes
+            @emit('ready')
           else
             env.logger.debug "from CUL -> #{dataString}"
             @emit('culDataReceived',dataString)
+
+        return new Promise( (resolve, reject) =>
+          Promise.delay(1000).then( =>
+            #check the version of the cul firmware
+            env.logger.info "check CUL Firmware version"
+            @_serialDeviceInstance.writeAsync('V\n').catch(reject)
+          ).delay(1000).then( =>
+            # enable max mode of the cul firmware
+            env.logger.info "enable MAX! Mode of the CUL868"
+            @_serialDeviceInstance.writeAsync('Zr\nZa'+@_baseAddress+'\n').catch(reject)
+          ).done()
+          #set resolver and resolve the promise if on ready event
+          resolver = resolve
+          @once("ready", resolver)
+        ).timeout(timeout).catch( (err) =>
+          if err.name is "TimeoutError"
+            env.logger.info ('Timeout on CUL connect, cul is available but not responding')
+        )
       )
 
-      #--------------------------------------------
-      @_serialDeviceInstance.open (err) =>
-        if ( err? )
-          env.logger.info "opening serialPort #{serialPortName} failed #{err}"
-        else
-          env.logger.info "serialPort #{serialPortName} is open!"
-          @_serialDeviceInstance.write('V\n')
-          env.logger.info "enable MAX! Mode of the CUL868"
-          # enable the receiving of MAX messages
-          @_serialDeviceInstance.write('Zr\nZa'+@_baseAddress+'\n')
+    disconnect: ->
+      @serialPort.closeAsync()
 
-
-      setInterval( =>
-        #@checkMessageQueueForTimeouts()
-        @processMessageQueue()
-      , 3000
-      )
-        #--------------------------------------------
-
-
-    disconnect: -> @serialPort.closeAsync()
-
-
-
-
-
-
-
+    # write data to the CUL device
     serialWrite: (data) ->
-      convertedData = data.toUpperCase()
-      command = "Zs"+convertedData+"\n"
-
-      @_serialDeviceInstance.write(command,() =>
-        @_serialDeviceInstance.drain( (error)->
-            if (error)
-              env.logger.error "Serialport draining error !"
-            else
-              env.logger.info "send done !"
-          )
+      command = "Zs"+data+"\n"
+      return @_serialDeviceInstance.writeAsync(command).then( =>
+          env.logger.info "Send Packet to CUL: #{data}, awaiting ACK\n"
       )
-      env.logger.info "Send Packet to CUL: #{convertedData}\n"
-      #@processMessageQueue()
 
     addPacketToTransportQueue: (packet) ->
-      packet.status = 'new'
-      if (packet.deviceType == "ShutterContact")
+      if (packet.getRawType() == "ShutterContact")
         #If the target is a shuttercontact this packet must be send as first, because it is
         #only awake for a short time period after it has transmited his data
         #prepend new packet to queue
@@ -103,22 +114,11 @@ module.exports = (env) ->
         #append packet to queue
         @_messageQueue.push(packet)
       if(@_busy) then return
-      @_busy = true
-      @processMessageQueue()
-
-    ackPacket: ()->
-      @_current.status = 'done'
+      @emit("newPacketForTransmission")
 
     processMessageQueue: () ->
-      if(@_current)
-        #check if the last packet was send and we got an ack
-        if(@_current.status != 'done' && @_current.status != 'error')
-          ##We musst handle the last packet again
-          next = @_current
-        else
-          ##The last packet is done so we get the next one
-          next = @_messageQueue.shift()
-      else
+      @_busy = true
+      if(!@_current)
           ##The last packet is done so we get the next one
           next = @_messageQueue.shift()
       #If we have no new packet we have nothing to do here
@@ -127,33 +127,39 @@ module.exports = (env) ->
         @_busy = false
         return
 
+      if(next.getStatus == 'new')
+        next.setStatus('send')
+        next.setSendTries(1)
+
       @_current = next
+      @_currentSentPromise = @sendPacket()
 
-      if(next.status == 'new')
-        next.status = 'send'
-        next.sendTries = 3
-      else if(next.status == 'send')
-        env.logger.debug("Retransmit packet #{next.preparedPacket}, try #{next.sendTries} of 3")
-        next.sendTries--
+    sendPacket: () ->
+      packet = @_current
+      return new Promise( (resolve, reject) =>
+        @_ackResolver = resolve
+        @serialWrite(packet.getRawPacket()).done()
+        @once("gotAck", =>
+          @_ackResolver()
+          @cleanMessageQueueState()
+        )
+      ).timeout(3000).catch( (err) =>
+        if err.name is "TimeoutError" and packet.getSendTries() < 3
+          packet.setSendTries(packet.getSendTries() + 1)
+          @removeAllListeners('gotAck')
+          @_currentSentPromise = @sendPacket(packet)
+          env.logger.info("Retransmit packet #{packet.getRawPacket()}, try #{packet.getSendTries()} of 3")
+        else if err.name is "TypeError"
+          env.logger.debug("#{err}")
+        else
+          env.logger.info "Paket #{packet.getRawPacket()} could no be send! (no response)"
+          @removeAllListeners('gotAck')
+          @cleanMessageQueueState()
+      )
 
-      if(next.sendTries > 0)
-        @_current.sendTime = Math.floor(new Date() / 1000);
-        env.logger.debug("send")
-        @serialWrite(next.preparedPacket)
-      else
-        env.logger.info "Paket #{next.preparedPacket} could no be send! (no response)"
-        @_current.status = 'error'
+    cleanMessageQueueState: () ->
+      @_current = null
+      @emit('readyForNextPacketTransmission')
 
-      console.log("++++++++++++next+++++++++++++++++\n",next,'\n------------------------------------------\n');
-
-    checkMessageQueueForTimeouts: () ->
-      now = Math.floor(new Date() / 1000);
-      console.log('+++++++++++++Waiting+++++++++++++++++',@_sendMessages,'------------------------------------------');
-      for packet, key in @_sendMessages
-        if now - packet.sendTime > 3
-          if packet.sendTries <= 3
-            @_sendMessages.splice(key, 1)
-
-            @addPacketToTransportQueue(packet);
-          else
-            @_sendMessages.splice(key, 1)
+    ackPacket: ()->
+      @emit('gotAck')
