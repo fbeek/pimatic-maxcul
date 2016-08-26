@@ -10,7 +10,7 @@ script#maxcul-heating-thermostat-template(type='text/template')
         <!-- ko if: $data.getConfig('guiShowModeControl')  -->
         .button-control.ui-controlgroup.ui-controlgroup-horizontal.ui-corner-all.ui-mini.no-carousel-slide(data-role='controlgroup', data-type='horizontal', data-mini='true', data-enhanced='true')
           .ui-controlgroup-controls
-            a.ui-first-child.ui-btn.ui-corner-all(name='autoButton', data-bind='click: modeAuto') auto
+            a.ui-first-child.ui-btn.ui-corner-all.ui-disabled(name='autoButton', data-bind='click: modeAuto') auto
             a.ui-btn.ui-corner-all(name='manuButton', data-bind='click: modeManu') manu
             a.ui-last-child.ui-btn.ui-corner-all(name='boostButton', data-bind='click: modeBoost') boost
         <!-- /ko -->

@@ -94,6 +94,11 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
     Fixed a wrong type for an initial variable value
 
+* v0.5.0
+
+    Added rewritten communication layer with retransmit, timeout and promise support for a better reliability. Also cleaned up the code.
+    Disabled the "auto" mode button, because there is no support to config this mode at the moment.
+
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
@@ -104,3 +109,5 @@ ToDo
 * additional error handling
 * Wall-Thermostat support
 * Push Button support
+* Implement ConfigValve support to configure the boost duration
+* pimatic 0.9 support (We need an alternative for the HiPack module, because it is not compatible with node > 0.10.48)
