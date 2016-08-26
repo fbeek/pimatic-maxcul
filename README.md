@@ -99,6 +99,9 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
     Added rewritten communication layer with retransmit, timeout and promise support for a better reliability. Also cleaned up the code.
     Disabled the "auto" mode button, because there is no support to config this mode at the moment.
 
+* v0.5.1
+
+    Added Missing Class file.
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
