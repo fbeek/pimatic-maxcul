@@ -9,10 +9,10 @@
     "communication-layer.coffee",
     "max-driver.coffee",
     "maxcul-device-config-schema.coffee",
-    "culpacket.coffee"
+    "culpacket.coffee",
     "app/*"
   ],
-  "version": "0.5.0",
+  "version": "0.5.1",
   "homepage": "http://idbtec.de/maxcul",
   "private": false,
   "repository": {
