@@ -166,13 +166,13 @@ module.exports = (env) ->
       packet.setMessageCount(@msgCount + 1)
       packet.setRawType(deviceType)
 
-      temp = @intToHex(packet.msgCount)
-      data = temp[1]+flags+cmdId+src+dest+groupId+payload
+      temp = @intToHex(packet.getMessageCount())
+      data = temp+flags+cmdId+src+dest+groupId+payload
+
       length = data.length/2
       length = @intToHex(length)
 
-      packet.setRawPacket(length[1]+data)
-
+      packet.setRawPacket(length+data)
       @comLayer.addPacketToTransportQueue(packet)
 
     generateTimePayload: () ->
@@ -189,7 +189,7 @@ module.exports = (env) ->
       prep.compressedTwo = prep.sec | ((prep.month & 0x03) << 6)
 
       payload = @intToHex(prep.year) +  @intToHex(prep.day) + @intToHex(prep.hour) + @intToHex(prep.compressedOne) + @intToHex(prep.compressedTwo)
-      return payload[1];
+      return payload;
 
     sendTimeInformation: (dest, deviceType) ->
       payload = @generateTimePayload()
@@ -260,7 +260,7 @@ module.exports = (env) ->
     PairPing: (packet) ->
       env.logger.debug "handling PairPing packet"
       if(@pairModeEnabled)
-        new payloadBuffer = new Buffer(packet.rawPayload, 'hex')
+        payloadBuffer = new Buffer(packet.getRawPayload(), 'hex')
         payloadParser = new BinaryParser().uint8('firmware').uint8('type').uint8('test')
         temp = payloadParser.parse(payloadBuffer)
         packet.setDecodedPayload(temp)
@@ -367,5 +367,5 @@ module.exports = (env) ->
       return timeData;
 
     intToHex: (val) ->
-      value = Number(val)
-      return ("00" + value.toString(16)).substr(-2)
+      temp = Number(val)
+      return ("00" + temp.toString(16)).substr(-2)
