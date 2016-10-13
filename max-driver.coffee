@@ -278,13 +278,16 @@ module.exports = (env) ->
           env.logger.debug ", but pairing is disabled so ignore"
 
     Ack: (packet) ->
-      packet.setDecodedPayload( parseInt(packet.getRawPayload(),16) )
+      payloadBuffer = new Buffer(packet.getRawPayload(),'hex');
+      payloadParser = new BinaryParser().uint8('state')
+      temp = payloadParser.parse(payloadBuffer)
+      packet.setDecodedPayload( temp.state )
       if( packet.getDecodedPayload() == 1 )
         env.logger.debug "got OK-ACK Packet from #{packet.getSource()}"
         @comLayer.ackPacket()
       else
         #????
-        env.logger.debug "got ACK Error (Invalid command/argument) from #{packet.getSource()} with payload #{packet.decodedPayload}"
+        env.logger.debug "got ACK Error (Invalid command/argument) from #{packet.getSource()} with payload #{packet.getRawPayload()}"
 
     ShutterContactState: (packet) ->
       rawBitData = new BitSet('0x'+packet.getRawPayload())
