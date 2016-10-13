@@ -166,10 +166,10 @@ module.exports = (env) ->
       packet.setMessageCount(@msgCount + 1)
       packet.setRawType(deviceType)
 
-      temp = intToHex(packet.msgCount)
+      temp = @intToHex(packet.msgCount)
       data = temp[1]+flags+cmdId+src+dest+groupId+payload
       length = data.length/2
-      length = intToHex(length)
+      length = @intToHex(length)
 
       packet.setRawPacket(length[1]+data)
 
@@ -188,7 +188,7 @@ module.exports = (env) ->
       prep.compressedOne = prep.min | ((prep.month & 0x0C) << 4)
       prep.compressedTwo = prep.sec | ((prep.month & 0x03) << 6)
 
-      payload = intToHex(prep.year) +  intToHex(prep.day) + intToHex(prep.hour) + intToHex(prep.compressedOne) + intToHex(prep.compressedTwo)
+      payload = @intToHex(prep.year) +  @intToHex(prep.day) + @intToHex(prep.hour) + @intToHex(prep.compressedOne) + @intToHex(prep.compressedTwo)
       return payload[1];
 
     sendTimeInformation: (dest, deviceType) ->
