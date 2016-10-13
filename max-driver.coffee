@@ -1,11 +1,11 @@
 module.exports = (env) ->
 
   {EventEmitter} = require 'events'
-  HiPack = require 'hipack'
   BitSet = require 'bitset.js'
   Promise = env.require 'bluebird'
   Moment = env.require 'moment'
   Sprintf = require("sprintf-js").sprintf
+  BinaryParser = require("binary-parser").Parser
 
   CommunicationServiceLayer = require('./communication-layer')(env)
   CulPacket = require('./culpacket')(env)
@@ -166,10 +166,10 @@ module.exports = (env) ->
       packet.setMessageCount(@msgCount + 1)
       packet.setRawType(deviceType)
 
-      temp = HiPack.unpack("H*",HiPack.pack("C",packet.msgCount))
+      temp = intToHex(packet.msgCount)
       data = temp[1]+flags+cmdId+src+dest+groupId+payload
       length = data.length/2
-      length = HiPack.unpack("H*",HiPack.pack("C",length))
+      length = intToHex(length)
 
       packet.setRawPacket(length[1]+data)
 
@@ -188,9 +188,7 @@ module.exports = (env) ->
       prep.compressedOne = prep.min | ((prep.month & 0x0C) << 4)
       prep.compressedTwo = prep.sec | ((prep.month & 0x03) << 6)
 
-      payload = HiPack.unpack("H*",
-        HiPack.pack("CCCCC",prep.year,prep.day,prep.hour,prep.compressedOne,prep.compressedTwo)
-      )
+      payload = intToHex(prep.year) +  intToHex(prep.day) + intToHex(prep.hour) + intToHex(prep.compressedOne) + intToHex(prep.compressedTwo)
       return payload[1];
 
     sendTimeInformation: (dest, deviceType) ->
@@ -262,7 +260,10 @@ module.exports = (env) ->
     PairPing: (packet) ->
       env.logger.debug "handling PairPing packet"
       if(@pairModeEnabled)
-        packet.setDecodedPayload(HiPack.unpack("Cfirmware/Ctype/Ctest/a*serial",HiPack.pack("H*",packet.rawPayload)))
+        new payloadBuffer = new Buffer(packet.rawPayload, 'hex')
+        payloadParser = new BinaryParser().uint8('firmware').uint8('type').uint8('test')
+        temp = payloadParser.parse(payloadBuffer)
+        packet.setDecodedPayload(temp)
         if (packet.getDest() != "000000" && packet.getForMe() != true)
           #Pairing Command is not for us
           env.logger.debug "handled PairPing packet is not for us"
@@ -277,8 +278,7 @@ module.exports = (env) ->
           env.logger.debug ", but pairing is disabled so ignore"
 
     Ack: (packet) ->
-      temp = HiPack.unpack("C",HiPack.pack("H*",packet.getRawPayload()))
-      packet.setDecodedPayload(temp[1])
+      packet.setDecodedPayload( parseInt(packet.getRawPayload(),16) )
       if( packet.getDecodedPayload() == 1 )
         env.logger.debug "got OK-ACK Packet from #{packet.getSource()}"
         @comLayer.ackPacket()
@@ -304,10 +304,13 @@ module.exports = (env) ->
       rawPayload = packet.getRawPayload()
 
       if( rawPayload.length >= 10)
+        rawPayloadBuffer = new Buffer(rawPayload, 'hex')
         if( rawPayload.length == 10)
-          rawData = HiPack.unpack("Cbits/CvalvePosition/CdesiredTemp/CuntilOne/CuntilTwo",HiPack.pack("H*",rawPayload));
+          payloadParser = new BinaryParser().uint8('bits').uint8('valvePosition').uint8('desiredTemp').uint8('untilOne').uint8('untilTwo')
         else
-          rawData = HiPack.unpack("Cbits/CvalvePosition/CdesiredTemp/CuntilOne/CuntilTwo/CuntilThree",HiPack.pack("H*",rawPayload));
+          payloadParser = new BinaryParser().uint8('bits').uint8('valvePosition').uint8('desiredTemp').uint8('untilOne').uint8('untilTwo').uint8('untilThree')
+
+        rawData = payloadParser.parse(rawPayloadBuffer)
 
         rawBitData = new BitSet(rawData.bits);
         rawMode = rawBitData.getRange(0,1);
@@ -362,3 +365,7 @@ module.exports = (env) ->
 
       timeData.dateString = timeData.day+'.'+timeData.month+'.'+timeData.year+' '+timeData.time
       return timeData;
+
+    intToHex: (val) ->
+      value = Number(val)
+      return ("00" + value.toString(16)).substr(-2)
