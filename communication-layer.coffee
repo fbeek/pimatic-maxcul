@@ -54,7 +54,7 @@ module.exports = (env) ->
 
       return @_serialDeviceInstance.openAsync().then( =>
         resolver = null
-        timeout = 3000
+        timeout = 15000
         if ( err? )
           env.logger.info "opening serialPort #{@serialPortName} failed #{err}"
         else
@@ -75,11 +75,11 @@ module.exports = (env) ->
             @emit('culDataReceived',dataString)
 
         return new Promise( (resolve, reject) =>
-          Promise.delay(1000).then( =>
+          Promise.delay(5000).then( =>
             #check the version of the cul firmware
             env.logger.debug "check CUL Firmware version"
             @_serialDeviceInstance.writeAsync('V\n').catch(reject)
-          ).delay(1000).then( =>
+          ).delay(5000).then( =>
             # enable max mode of the cul firmware
             env.logger.debug "enable MAX! Mode of the CUL868"
             @_serialDeviceInstance.writeAsync('Zr\nZa'+@_baseAddress+'\n').catch(reject)
