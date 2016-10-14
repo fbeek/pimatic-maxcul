@@ -106,7 +106,12 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 * v0.5.2
 
     Removed the HiPack dependency, this npm package is no longer developed and so we need to remove it for the further development of the pimatic 0.9 compatibility.
-    We also changed the serial port timeouts and logging levels for a better user experience
+    We also changed the serial port timeouts and logging levels for a better user experience.
+
+* v0.9.0
+
+    First Version with pimatic 0.9 support. This Version is not compatible with 0.8 anymore because we raised the version of the node-serialport module, version 0.8 users use
+    maxcul v0.5.2 please insted.
 
 ToDo
 -------
@@ -119,4 +124,3 @@ ToDo
 * Wall-Thermostat support
 * Push Button support
 * Implement ConfigValve support to configure the boost duration
-* pimatic 0.9 support
