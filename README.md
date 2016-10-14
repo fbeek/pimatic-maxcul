@@ -102,6 +102,12 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 * v0.5.1
 
     Added Missing Class file.
+
+* v0.5.2
+
+    Removed the HiPack dependency, this npm package is no longer developed and so we need to remove it for the further development of the pimatic 0.9 compatibility.
+    We also changed the serial port timeouts and logging levels for a better user experience
+
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
@@ -113,4 +119,4 @@ ToDo
 * Wall-Thermostat support
 * Push Button support
 * Implement ConfigValve support to configure the boost duration
-* pimatic 0.9 support (We need an alternative for the HiPack module, because it is not compatible with node > 0.10.48)
+* pimatic 0.9 support
