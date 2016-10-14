@@ -17,7 +17,7 @@ module.exports = (env) ->
     @availableDevices
 
     init: (app, @framework, @config) =>
-      baseAddress = config.homebaseAddress
+      baseAddress = @config.homebaseAddress
 
       deviceConfigDef = require("./maxcul-device-config-schema")
       deviceTypeClasseNames = [
@@ -25,7 +25,7 @@ module.exports = (env) ->
         MaxculHeatingThermostat
       ]
 
-      @maxDriver = new MaxDriver(baseAddress, config.enablePairMode, config.serialPortName, config.baudrate)
+      @maxDriver = new MaxDriver(baseAddress, @config.enablePairMode, @config.serialPortName, @config.baudrate)
       @maxDriver.connect()
       @availableDevices = []
 
@@ -182,9 +182,9 @@ module.exports = (env) ->
       @deviceType = "ShutterContact"
 
       constructor: (@config, lastState, @maxDriver) ->
-        @id = config.id
-        @name = config.name
-        @_deviceId = config.deviceId.toLowerCase()
+        @id = @config.id
+        @name = @config.name
+        @_deviceId = @config.deviceId.toLowerCase()
         @_contact = lastState?.contact?.value
         @_battery = lastState?.battery?.value
 
