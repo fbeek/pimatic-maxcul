@@ -14,7 +14,6 @@ module.exports = (env) ->
     constructor: (baudrate, serialPortName, @_baseAddress) ->
       @serialPortName = serialPortName
       env.logger.info("using serial device #{@serialPortName}@#{baudrate}")
-      env.logger.info("trying to open serialport...")
 
       @_messageQueue = []
       @_sendMessages = []
@@ -55,7 +54,7 @@ module.exports = (env) ->
 
       return @_serialDeviceInstance.openAsync().then( =>
         resolver = null
-        timeout = 3000
+        timeout = 15000
         if ( err? )
           env.logger.info "opening serialPort #{@serialPortName} failed #{err}"
         else
@@ -76,13 +75,13 @@ module.exports = (env) ->
             @emit('culDataReceived',dataString)
 
         return new Promise( (resolve, reject) =>
-          Promise.delay(1000).then( =>
+          Promise.delay(5000).then( =>
             #check the version of the cul firmware
-            env.logger.info "check CUL Firmware version"
+            env.logger.debug "check CUL Firmware version"
             @_serialDeviceInstance.writeAsync('V\n').catch(reject)
-          ).delay(1000).then( =>
+          ).delay(5000).then( =>
             # enable max mode of the cul firmware
-            env.logger.info "enable MAX! Mode of the CUL868"
+            env.logger.debug "enable MAX! Mode of the CUL868"
             @_serialDeviceInstance.writeAsync('Zr\nZa'+@_baseAddress+'\n').catch(reject)
           ).done()
           #set resolver and resolve the promise if on ready event
@@ -101,7 +100,7 @@ module.exports = (env) ->
     serialWrite: (data) ->
       command = "Zs"+data+"\n"
       return @_serialDeviceInstance.writeAsync(command).then( =>
-          env.logger.info "Send Packet to CUL: #{data}, awaiting ACK\n"
+          env.logger.debug "Send Packet to CUL: #{data}, awaiting ACK\n"
       )
 
     addPacketToTransportQueue: (packet) ->
@@ -148,11 +147,11 @@ module.exports = (env) ->
           packet.setSendTries(packet.getSendTries() + 1)
           @removeAllListeners('gotAck')
           @_currentSentPromise = @sendPacket(packet)
-          env.logger.info("Retransmit packet #{packet.getRawPacket()}, try #{packet.getSendTries()} of 3")
+          env.logger.debug("Retransmit packet #{packet.getRawPacket()}, try #{packet.getSendTries()} of 3")
         else if err.name is "TypeError"
           env.logger.debug("#{err}")
         else
-          env.logger.info "Paket #{packet.getRawPacket()} could no be send! (no response)"
+          env.logger.debug("Paket #{packet.getRawPacket()} could no be send! (no response)")
           @removeAllListeners('gotAck')
           @cleanMessageQueueState()
       )

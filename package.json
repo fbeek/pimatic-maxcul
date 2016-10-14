@@ -12,7 +12,7 @@
     "culpacket.coffee",
     "app/*"
   ],
-  "version": "0.5.1",
+  "version": "0.5.2",
   "homepage": "http://idbtec.de/maxcul",
   "private": false,
   "repository": {
@@ -22,7 +22,7 @@
   "configSchema": "maxcul-config-schema.coffee",
   "dependencies": {
     "bitset.js": "^3.1.0",
-    "hipack": "^1.0.4",
+    "binary-parser": "^1.1.5",
     "serialport": "^1.7.4",
     "sprintf-js": "^1.0.3"
   },
