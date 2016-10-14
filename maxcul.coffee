@@ -100,16 +100,16 @@ module.exports = (env) ->
           do (Attribute) =>
             @addAttribute(Attribute.name,Attribute.settings)
 
-        @maxDriver.on('checkTimeIntervalFired', () =>
+        @maxDriver.on('checkTimeIntervalFired', checkTimeIntervalFiredHandler = () =>
           @_updateTimeInformation()
         )
 
-        @maxDriver.on('deviceRequestTimeInformation',(device) =>
+        @maxDriver.on('deviceRequestTimeInformation',deviceRequestTimeInformationHanlder = (device) =>
           if device == @_deviceId
             @_updateTimeInformation()
         )
 
-        @maxDriver.on('ThermostatStateRecieved',(thermostatState) =>
+        @maxDriver.on('ThermostatStateRecieved', thermostatStateRecievedHandler = (thermostatState) =>
           if(@_deviceId == thermostatState.src)
             @_setBattery(thermostatState.batterylow)
             @_setMode(@constructor._modes[thermostatState.mode])
@@ -117,6 +117,15 @@ module.exports = (env) ->
             if( thermostatState.measuredTemperature != 0)
               @_setMeasuredTemperature(thermostatState.measuredTemperature)
         )
+
+        @on('destroy', () =>
+          @maxDriver.removeListener('deviceRequestTimeInformation', deviceRequestTimeInformationHanlder)
+          @maxDriver.removeListener('ThermostatStateRecieved', thermostatStateRecievedHandler)
+          @maxDriver.removeListener('checkTimeIntervalFired', checkTimeIntervalFiredHandler)
+
+          env.logger.debug "Thermostat #{@_deviceId} handlers removed"
+        )
+
         super()
 
       _setMeasuredTemperature: (measuredTemperature) ->
@@ -176,6 +185,10 @@ module.exports = (env) ->
 
       getTemplateName: -> "maxcul-heating-thermostat"
 
+      destroy: ->
+        env.logger.debug "Thermostat #{@_deviceId} destroyed"
+        super()
+
     # Class that represents a MAX! ShutterContact
     class MaxculShutterContact extends env.devices.ContactSensor
 
@@ -198,13 +211,19 @@ module.exports = (env) ->
           }
         )
 
-        @maxDriver.on('ShutterContactStateRecieved',(shutterContactState) =>
+        @maxDriver.on('ShutterContactStateRecieved',shutterContactStateReceivedHandler = (shutterContactState) =>
           if(@_deviceId == shutterContactState.src)
             # If the window is open the isOpen field is true the contact is open = false
             @_setContact(if shutterContactState.isOpen then false else true)
             @_setBattery(shutterContactState.batteryLow)
             env.logger.debug "ShutterContact with deviceId #{@_deviceId} updated"
         )
+
+        @on('destroy', () =>
+          @maxDriver.removeListener('ShutterContactStateRecieved', shutterContactStateReceivedHandler)
+          env.logger.debug "ShutterContact #{@_deviceId} ShutterContactStateRecieved handler removed"
+        )
+
         super()
 
       getBattery:() -> Promise.resolve(@_battery)
@@ -215,6 +234,10 @@ module.exports = (env) ->
         @emit 'battery', value
 
       handleReceivedCmd: (command) ->
+
+      destroy: ->
+        env.logger.debug "ShutterContact #{@_deviceId} destroyed"
+        super()
 
   maxculPlugin = new MaxculPlugin
   return maxculPlugin
