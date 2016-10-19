@@ -29,9 +29,11 @@ module.exports = (env) ->
 
     connect: () ->
       @ready = no
+
       @_serialDeviceInstance.removeAllListeners('error')
       @_serialDeviceInstance.removeAllListeners('data')
       @_serialDeviceInstance.removeAllListeners('close')
+
       @removeAllListeners('newPacketForTransmission')
       @removeAllListeners('readyForNextPacketTransmission')
 
@@ -55,10 +57,8 @@ module.exports = (env) ->
       return @_serialDeviceInstance.openAsync().then( =>
         resolver = null
         timeout = 15000
-        if ( err? )
-          env.logger.info "opening serialPort #{@serialPortName} failed #{err}"
-        else
-          env.logger.info "serialPort #{@serialPortName} is open!"
+
+        env.logger.info "serialPort #{@serialPortName} is open!"
 
         @_serialDeviceInstance.on 'data', (data) =>
           env.logger.debug "incoming raw data from CUL: #{data}"
@@ -91,6 +91,8 @@ module.exports = (env) ->
           if err.name is "TimeoutError"
             env.logger.info ('Timeout on CUL connect, cul is available but not responding')
         )
+      ).catch( (err) =>
+        env.logger.info ("Can not connect to serial port, cause: #{err.cause}")
       )
 
     disconnect: ->
