@@ -104,7 +104,7 @@ module.exports = (env) ->
           @_updateTimeInformation()
         )
 
-        @maxDriver.on('deviceRequestTimeInformation',deviceRequestTimeInformationHanlder = (device) =>
+        @maxDriver.on('deviceRequestTimeInformation',deviceRequestTimeInformationHandlder = (device) =>
           if device == @_deviceId
             @_updateTimeInformation()
         )
@@ -119,7 +119,7 @@ module.exports = (env) ->
         )
 
         @on('destroy', () =>
-          @maxDriver.removeListener('deviceRequestTimeInformation', deviceRequestTimeInformationHanlder)
+          @maxDriver.removeListener('deviceRequestTimeInformation', deviceRequestTimeInformationHandlder)
           @maxDriver.removeListener('ThermostatStateRecieved', thermostatStateRecievedHandler)
           @maxDriver.removeListener('checkTimeIntervalFired', checkTimeIntervalFiredHandler)
 
@@ -150,19 +150,26 @@ module.exports = (env) ->
         else
           temperatureSetpoint = @_temperatureSetpoint
           env.logger.debug "Set desired mode to #{mode} for deviceId #{@_deviceId}"
-        return @maxDriver.sendDesiredTemperature(@_deviceId, temperatureSetpoint, mode, "00", @constructor.deviceType).then ( =>
+
+        @maxDriver.sendDesiredTemperature(@_deviceId, temperatureSetpoint, mode, "00", @constructor.deviceType).then ( =>
           @_lastSendTime = new Date().getTime()
           @_setMode(mode)
           @_setSetpoint(temperatureSetpoint)
+          return Promise.resolve true
+        ).catch( (err) =>
+          return Promise.reject err
         )
 
       changeTemperatureTo: (temperatureSetpoint) ->
         if @_temperatureSetpoint is temperatureSetpoint then return Promise.resolve true
         env.logger.debug "Set desired temperature #{temperatureSetpoint} for deviceId #{@_deviceId}"
-        return @maxDriver.sendDesiredTemperature(@_deviceId, temperatureSetpoint, @_mode, "00", @constructor.deviceType).then( =>
+        @maxDriver.sendDesiredTemperature(@_deviceId, temperatureSetpoint, @_mode, "00", @constructor.deviceType).then( =>
           @_lastSendTime = new Date().getTime()
-          @_setSynced(false)
+          @_setSynced(true)
           @_setSetpoint(temperatureSetpoint)
+          return Promise.resolve true
+        ).catch( (err) =>
+          return Promise.reject err
         )
 
       transferConfigToDevice: () ->

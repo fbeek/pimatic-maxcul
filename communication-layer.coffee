@@ -78,12 +78,14 @@ module.exports = (env) ->
           Promise.delay(5000).then( =>
             #check the version of the cul firmware
             env.logger.debug "check CUL Firmware version"
-            @_serialDeviceInstance.writeAsync('V\n').catch(reject)
+            @_serialDeviceInstance.writeAsync('V\n').then( =>
+              env.logger.debug "Requesting CUL Version...\n"
+            ).catch(reject)
           ).delay(5000).then( =>
             # enable max mode of the cul firmware
             env.logger.debug "enable MAX! Mode of the CUL868"
             @_serialDeviceInstance.writeAsync('Zr\nZa'+@_baseAddress+'\n').catch(reject)
-          ).done()
+          )
           #set resolver and resolve the promise if on ready event
           resolver = resolve
           @once("ready", resolver)
@@ -100,10 +102,14 @@ module.exports = (env) ->
 
     # write data to the CUL device
     serialWrite: (data) ->
-      command = "Zs"+data+"\n"
-      return @_serialDeviceInstance.writeAsync(command).then( =>
-          env.logger.debug "Send Packet to CUL: #{data}, awaiting ACK\n"
-      )
+      if( @_serialDeviceInstance.isOpen() )
+        command = "Zs"+data+"\n"
+        return @_serialDeviceInstance.writeAsync(command).then( =>
+            env.logger.debug "Send Packet to CUL: #{data}, awaiting ACK\n"
+        )
+      else
+        env.logger.debug ("Can not send packet because serial port is not open")
+        return Promise.reject("Error: serial port is not open")
 
     addPacketToTransportQueue: (packet) ->
       if (packet.getRawType() == "ShutterContact")
@@ -139,22 +145,28 @@ module.exports = (env) ->
       packet = @_current
       return new Promise( (resolve, reject) =>
         @_ackResolver = resolve
-        @serialWrite(packet.getRawPacket()).done()
+        @serialWrite( packet.getRawPacket() ).catch( (err) =>
+          reject(err)
+        )
         @once("gotAck", =>
           @_ackResolver()
+          packet.resolve(true)
           @cleanMessageQueueState()
         )
       ).timeout(3000).catch( (err) =>
-        if err.name is "TimeoutError" and packet.getSendTries() < 3
-          packet.setSendTries(packet.getSendTries() + 1)
-          @removeAllListeners('gotAck')
-          @_currentSentPromise = @sendPacket(packet)
-          env.logger.debug("Retransmit packet #{packet.getRawPacket()}, try #{packet.getSendTries()} of 3")
-        else if err.name is "TypeError"
-          env.logger.debug("#{err}")
+        @removeAllListeners('gotAck')
+        if err.name is "TimeoutError"
+          if packet.getSendTries() < 3
+            packet.setSendTries(packet.getSendTries() + 1)
+            @_currentSentPromise = @sendPacket(packet)
+            env.logger.debug("Retransmit packet #{packet.getRawPacket()}, try #{packet.getSendTries()} of 3")
+          else
+            env.logger.info("Paket #{packet.getRawPacket()} send but no response!")
+            packet.reject("Paket #{packet.getRawPacket()} send but no response!");
+            @cleanMessageQueueState()
         else
-          env.logger.debug("Paket #{packet.getRawPacket()} could no be send! (no response)")
-          @removeAllListeners('gotAck')
+          env.logger.info("Paket #{packet.getRawPacket()} could no be send! #{err}")
+          packet.reject("Paket #{packet.getRawPacket()} could no be send! #{err}");
           @cleanMessageQueueState()
       )
 

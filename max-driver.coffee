@@ -173,7 +173,16 @@ module.exports = (env) ->
       length = @intToHex(length)
 
       packet.setRawPacket(length+data)
-      @comLayer.addPacketToTransportQueue(packet)
+
+      return new Promise( (resolve, reject) =>
+        packet.resolve = resolve
+        packet.reject = reject
+        @comLayer.addPacketToTransportQueue(packet)
+      )
+
+
+
+      #return Promise.resolve true
 
     generateTimePayload: () ->
       now = Moment()
@@ -244,11 +253,11 @@ module.exports = (env) ->
 
       #if a  groupid is given we set the flag to 04 to switch all devices in this group
       if groupId == "00"
-        @sendMsg("40",@baseAddress,dest,payloadHex,"00","00",deviceType);
+        return @sendMsg("40",@baseAddress,dest,payloadHex,"00","00",deviceType);
       else
-        @sendMsg("40",@baseAddress,dest,payloadHex,groupId,"04",deviceType);
+        return @sendMsg("40",@baseAddress,dest,payloadHex,groupId,"04",deviceType);
 
-      return Promise.resolve true
+      #return Promise.resolve true
 
     parseTemperature: (temperature) ->
       if temperature == 'on'
