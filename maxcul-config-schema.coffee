@@ -18,4 +18,8 @@ module.exports = {
       doc: "Enabled the pair mode, should be false for production because it could interfere with your neighbours"
       type: "boolean"
       default: false
+    debug:
+      doc: "Enabled debug messages"
+      type: "boolean"
+      default: false
 }
