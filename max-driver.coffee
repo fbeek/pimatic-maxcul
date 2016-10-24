@@ -85,7 +85,7 @@ module.exports = (env) ->
           functionName : "ShutterContactState"
           id : "30"
         }
-        cmd40 : "SetTemperature"
+        cmd40 : "SetTemperature" # Send by the Wallthermostat
         cmd42 : "WallThermostatControl"
         cmd43 : "SetComfortTemperature"
         cmd44 : "SetEcoTemperature"

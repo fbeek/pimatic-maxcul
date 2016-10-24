@@ -123,7 +123,6 @@ ToDo
 * Add group support to handle groups of devices as one
 * Support for programming Week Profile (at the moment there is only the default program in "Auto Mode")
 * possibility to pair the shutters an heating elements directly
-* additional error handling
 * Wall-Thermostat support
 * Push Button support
 * Implement ConfigValve support to configure the boost duration
