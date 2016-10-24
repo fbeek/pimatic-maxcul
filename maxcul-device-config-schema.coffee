@@ -72,7 +72,7 @@ module.exports = {
         type: "boolean"
         default: true
       guiShowBatteryState:
-        description: "Show the measured temperature in the gui"
+        description: "Show the battery state in the gui"
         type: "boolean"
         default: true
       guiShowConfigButton:
