@@ -166,11 +166,11 @@ module.exports = (env) ->
       packet.setMessageCount(@msgCount + 1)
       packet.setRawType(deviceType)
 
-      temp = @intToHex(packet.getMessageCount())
-      data = temp+flags+cmdId+src+dest+groupId+payload
 
+      temp =  Sprintf('%02x',packet.getMessageCount())
+      data = temp+flags+cmdId+src+dest+groupId+payload
       length = data.length/2
-      length = @intToHex(length)
+      length = Sprintf('%02x',length)
 
       packet.setRawPacket(length+data)
 
@@ -179,10 +179,6 @@ module.exports = (env) ->
         packet.reject = reject
         @comLayer.addPacketToTransportQueue(packet)
       )
-
-
-
-      #return Promise.resolve true
 
     generateTimePayload: () ->
       now = Moment()
@@ -197,7 +193,7 @@ module.exports = (env) ->
       prep.compressedOne = prep.min | ((prep.month & 0x0C) << 4)
       prep.compressedTwo = prep.sec | ((prep.month & 0x03) << 6)
 
-      payload = @intToHex(prep.year) +  @intToHex(prep.day) + @intToHex(prep.hour) + @intToHex(prep.compressedOne) + @intToHex(prep.compressedTwo)
+      payload =  Sprintf('%02x',prep.year) +   Sprintf('%02x',prep.day) + Sprintf('%02x',prep.hour) +  Sprintf('%02x',prep.compressedOne) +  Sprintf('%02x',prep.compressedTwo)
       return payload;
 
     sendTimeInformation: (dest, deviceType) ->
@@ -249,8 +245,7 @@ module.exports = (env) ->
         # example: Mode manuel 01 => 01 000110
         payloadBinary = modeBin + temperatureBinary
         # convert the binary payload to hex
-        payloadHex = parseInt(payloadBinary, 2).toString(16);
-
+        payloadHex = Sprintf('%02x',(parseInt(payloadBinary, 2)))
       #if a  groupid is given we set the flag to 04 to switch all devices in this group
       if groupId == "00"
         return @sendMsg("40",@baseAddress,dest,payloadHex,"00","00",deviceType);
@@ -377,7 +372,3 @@ module.exports = (env) ->
 
       timeData.dateString = timeData.day+'.'+timeData.month+'.'+timeData.year+' '+timeData.time
       return timeData;
-
-    intToHex: (val) ->
-      temp = Number(val)
-      return ("00" + temp.toString(16)).substr(-2)
