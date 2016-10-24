@@ -113,14 +113,18 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
     First Version with pimatic 0.9 support. This Version is not compatible with 0.8 anymore because we raised the version of the node-serialport module, version 0.8 users use
     maxcul v0.5.2 please insted.
 
+* v0.9.1
+
+    Added debug flag to give the user the possiblity to enable debugging messages. Also we hardened the plugin against crashes if there is problem with the serialport.
+
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
 * Add group support to handle groups of devices as one
-* Monitoring Mode to receive only the messages without responding
 * Support for programming Week Profile (at the moment there is only the default program in "Auto Mode")
 * possibility to pair the shutters an heating elements directly
 * additional error handling
 * Wall-Thermostat support
 * Push Button support
 * Implement ConfigValve support to configure the boost duration
+* Implement a fake wall thermostat to get the data from the thermostats every hour
