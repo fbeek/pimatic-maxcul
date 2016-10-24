@@ -65,14 +65,18 @@ module.exports = (env) ->
           dataString = "#{data}"
           dataString = dataString.replace(/[\r]/g, '')
 
+          env.logger.debug "from CUL -> #{dataString}"
+
           if (/V(.*)/.test(dataString))
             #data contains cul version string
             @emit('culFirmwareVersion', dataString)
             @ready = yes
             @emit('ready')
-          else
-            env.logger.debug "from CUL -> #{dataString}"
+          else if (/Z(.*)/.test(dataString))
             @emit('culDataReceived',dataString)
+          else
+            env.logger.info "received unknown data: #{dataString}"
+
 
         return new Promise( (resolve, reject) =>
           Promise.delay(5000).then( =>
