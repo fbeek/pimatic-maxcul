@@ -67,12 +67,12 @@ module.exports = (env) ->
 
           env.logger.debug "from CUL -> #{dataString}"
 
-          if (/V(.*)/.test(dataString))
+          if (/^V(.*)/.test(dataString))
 #data contains cul version string
             @emit('culFirmwareVersion', dataString)
             @ready = yes
             @emit('ready')
-          else if (/Z(.*)/.test(dataString))
+          else if (/^Z(.*)/.test(dataString))
             @emit('culDataReceived',dataString)
           else
             env.logger.info "received unknown data: #{dataString}"

@@ -166,7 +166,6 @@ module.exports = (env) ->
       packet.setMessageCount(@msgCount + 1)
       packet.setRawType(deviceType)
 
-
       temp =  Sprintf('%02x',packet.getMessageCount())
       data = temp+flags+cmdId+src+dest+groupId+payload
       length = data.length/2
