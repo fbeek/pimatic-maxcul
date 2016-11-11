@@ -29,12 +29,14 @@ module.exports = (env) ->
       @maxDriver.connect()
       @availableDevices = []
 
+      index = 0
       for DeviceClass in deviceTypeClasseNames
         do (DeviceClass) =>
           @framework.deviceManager.registerDeviceClass(DeviceClass.name, {
             configDef: deviceConfigDef[DeviceClass.name]
             createCallback: (deviceConfig,lastState) =>
-              device = new DeviceClass(deviceConfig,lastState, @maxDriver)
+              device = new DeviceClass(deviceConfig,lastState, @maxDriver, index)
+              index = index + 1
               @availableDevices.push device
               return device
           })
@@ -73,8 +75,9 @@ module.exports = (env) ->
         }
       ]
 
-      constructor: (@config,lastState, @maxDriver) ->
+      constructor: (@config, lastState, @maxDriver, index) ->
         @id = @config.id
+        @_index = index
         @name = @config.name
         @_deviceId = @config.deviceId.toLowerCase()
         @_mode = lastState?.mode?.value or "auto"
@@ -201,12 +204,13 @@ module.exports = (env) ->
 
       @deviceType = "ShutterContact"
 
-      constructor: (@config, lastState, @maxDriver) ->
+      constructor: (@config, lastState, @maxDriver, index) ->
         @id = @config.id
         @name = @config.name
         @_deviceId = @config.deviceId.toLowerCase()
         @_contact = lastState?.contact?.value
         @_battery = lastState?.battery?.value
+        @_index = index
 
         @addAttribute(
           'battery',

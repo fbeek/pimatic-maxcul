@@ -117,6 +117,17 @@ module.exports = (env) ->
       env.logger.debug "decoding Message #{message}"
       message = message.replace(/\n/, '')
       message = message.replace(/\r/, '')
+      
+      rssi = parseInt(message.slice(-2), 16)
+      if rssi >= 128
+        rssi = (rssi - 256) / 2 - 74
+      else
+        rssi = rssi / 2 - 74
+      env.logger.debug "RSSI for Message : #{rssi}"
+      
+      # remove rssi value from message string
+      message = message.substring(0, message.length - 2);
+      
       data = message.split(/Z(..)(..)(..)(..)(......)(......)(..)(.*)/)
       data.shift() # Removes first element from array, it is the 'Z'.
 

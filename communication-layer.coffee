@@ -65,10 +65,8 @@ module.exports = (env) ->
           dataString = "#{data}"
           dataString = dataString.replace(/[\r]/g, '')
 
-          env.logger.debug "from CUL -> #{dataString}"
-
           if (/^V(.*)/.test(dataString))
-#data contains cul version string
+            #data contains cul version string
             @emit('culFirmwareVersion', dataString)
             @ready = yes
             @emit('ready')
@@ -80,16 +78,18 @@ module.exports = (env) ->
 
         return new Promise( (resolve, reject) =>
           Promise.delay(1000).then( =>
-#check the version of the cul firmware
+            #check the version of the cul firmware
             env.logger.debug "check CUL Firmware version"
             @_serialDeviceInstance.writeAsync('V\n').then( =>
               env.logger.debug "Requested CUL Version...\n"
             ).catch(reject)
           ).delay(2000).then( =>
-# enable max mode of the cul firmware
+            # enable max mode of the cul firmware and rssi reporting
             env.logger.debug "enable MAX! Mode of the CUL868"
-            @_serialDeviceInstance.writeAsync('Zr\n').then( =>
-              @_serialDeviceInstance.writeAsync('Za'+@_baseAddress+'\n')
+            @_serialDeviceInstance.writeAsync('X20\n').then( =>
+              @_serialDeviceInstance.writeAsync('Zr\n').then( =>
+                @_serialDeviceInstance.writeAsync('Za'+@_baseAddress+'\n')
+              )
             ).catch(reject)
           ).done()
           #set resolver and resolve the promise if on ready event
@@ -106,12 +106,15 @@ module.exports = (env) ->
     disconnect: ->
       @serialPort.closeAsync()
 
-# write data to the CUL device
+    # write data to the CUL device
     serialWrite: (data) ->
       if( @_serialDeviceInstance.isOpen() )
         command = "Zs"+data+"\n"
         return @_serialDeviceInstance.writeAsync(command).then( =>
-          env.logger.debug "Send Packet to CUL: #{data}, awaiting ACK\n"
+          env.logger.debug ("Send Packet to CUL: #{data}, awaiting drain event")
+          @_serialDeviceInstance.drainAsync().then( =>
+            env.logger.debug ("serial port buffer have been drained")
+          )
         )
       else
         env.logger.debug ("Can not send packet because serial port is not open")
@@ -119,12 +122,12 @@ module.exports = (env) ->
 
     addPacketToTransportQueue: (packet) ->
       if (packet.getRawType() == "ShutterContact")
-#If the target is a shuttercontact this packet must be send as first, because it is
-#only awake for a short time period after it has transmited his data
-#prepend new packet to queue
+        #If the target is a shuttercontact this packet must be send as first, because it is
+        #only awake for a short time period after it has transmited his data
+        #prepend new packet to queue
         @_messageQueue.unshift(packet)
       else
-#append packet to queue
+        #append packet to queue
         @_messageQueue.push(packet)
       if(@_busy) then return
       @emit("newPacketForTransmission")
@@ -132,7 +135,7 @@ module.exports = (env) ->
     processMessageQueue: () ->
       @_busy = true
       if(!@_current)
-##The last packet is done so we get the next one
+        #The last packet is done so we get the next one
         next = @_messageQueue.shift()
       #If we have no new packet we have nothing to do here
       if(!next)
