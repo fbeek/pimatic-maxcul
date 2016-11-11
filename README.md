@@ -121,6 +121,10 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
 	Smaller Bugfixes and optimizations
 
+* v0.9.3
+
+        Added a RSSI reporting of received pakages to the debuging messages to check the wireless connection quality. Also smaller bugfixes and optimizations.
+
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
