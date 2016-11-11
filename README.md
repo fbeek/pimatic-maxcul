@@ -117,6 +117,10 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
     Added debug flag to give the user the possiblity to enable debugging messages. Also we hardened the plugin against crashes if there is problem with the serialport.
 
+* v0.9.2
+
+	Smaller Bugfixes and optimizations
+
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
