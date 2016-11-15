@@ -33,6 +33,15 @@ Example device Configuration shutter contact
       "deviceId": "020BFF"
     }
 
+Example device Configuration push button
+
+    {
+      "id": "button-1",
+      "class": "MaxculPushButton",
+      "name": "Push Button 1",
+      "deviceId": "03f92a"
+    }
+
 Example device Configuration heating thermostat
 
     {
@@ -132,6 +141,5 @@ ToDo
 * Support for programming Week Profile (at the moment there is only the default program in "Auto Mode")
 * possibility to pair the shutters an heating elements directly
 * Wall-Thermostat support
-* Push Button support
 * Implement ConfigValve support to configure the boost duration
 * Implement a fake wall thermostat to get the data from the thermostats every hour
