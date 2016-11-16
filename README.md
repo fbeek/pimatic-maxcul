@@ -140,6 +140,10 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
     Added a RSSI reporting of received pakages to the debuging messages to check the wireless connection quality. Also smaller bugfixes and optimizations.
 
+* v0.9.4
+
+    Added EcoButton support. Special THANKS to w3stbam for implementing this feature.
+
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
