@@ -7,7 +7,13 @@ At the moment the software is at a development stage so please use it with cauti
 
 More informations and function will be coming soon.
 
+
 WORK IN PROGRESS
+
+Information
+---------
+
+Because of the support ending for pimatic 0.8.x, we from now on support only pimatic > 0.9.x !
 
 Usage
 ---------
