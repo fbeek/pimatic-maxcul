@@ -119,11 +119,11 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
 * v0.9.2
 
-	Smaller Bugfixes and optimizations
+    Smaller Bugfixes and optimizations
 
 * v0.9.3
 
-        Added a RSSI reporting of received pakages to the debuging messages to check the wireless connection quality. Also smaller bugfixes and optimizations.
+    Added a RSSI reporting of received pakages to the debuging messages to check the wireless connection quality. Also smaller bugfixes and optimizations.
 
 ToDo
 -------
