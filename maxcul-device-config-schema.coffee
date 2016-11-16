@@ -22,6 +22,28 @@ module.exports = {
         default: "00"
     }
   },
+  MaxculPushButton:{
+    title: "Config options for the Maxcul PushButton"
+    type: "object"
+    properties: {
+      id:
+        description: "ID of the Device"
+        type: "string"
+        default: ""
+      deviceId:
+        description: "ID of the Device in the MAX! Network"
+        type: "string"
+        default: "000000"
+      name:
+        description: "Name of the Device"
+        type: "string"
+        default: "000000"
+      groupId:
+        description : "Group/Room id of the Device"
+        type: "string"
+        default: "00"
+    }
+  },
   MaxculHeatingThermostat:{
     title: "Config options for the Maxcul HeatingThermostat"
     type: "object"

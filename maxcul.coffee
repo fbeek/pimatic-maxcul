@@ -22,7 +22,8 @@ module.exports = (env) ->
       deviceConfigDef = require("./maxcul-device-config-schema")
       deviceTypeClasseNames = [
         MaxculShutterContact,
-        MaxculHeatingThermostat
+        MaxculHeatingThermostat,
+        MaxculPushButton
       ]
 
       @maxDriver = new MaxDriver(baseAddress, @config.enablePairMode, @config.serialPortName, @config.baudrate)
@@ -248,6 +249,57 @@ module.exports = (env) ->
 
       destroy: ->
         env.logger.debug "ShutterContact #{@_deviceId} destroyed"
+        super()
+
+    # Class that represents a MAX! PushButton
+    class MaxculPushButton extends env.devices.ContactSensor
+
+      @deviceType = "PushButton"
+
+      constructor: (@config, lastState, @maxDriver, index) ->
+        @id = @config.id
+        @name = @config.name
+        @_deviceId = @config.deviceId.toLowerCase()
+        @_contact = lastState?.contact?.value
+        @_battery = lastState?.battery?.value
+        @_index = index
+
+        @addAttribute(
+          'battery',
+          {
+            description: "state of the battery"
+            type: "boolean"
+            labels: ['low', 'ok']
+            acronym: "Bat."
+          }
+        )
+
+        @maxDriver.on('PushButtonStateRecieved',pushButtonStateReceivedHandler = (pushButtonState) =>
+          if(@_deviceId == pushButtonState.src)
+            # If the button state is open the isOpen field is true the contact is open = false
+            @_setContact(if pushButtonState.isOpen then false else true)
+            @_setBattery(pushButtonState.batteryLow)
+            env.logger.debug "PushButton with deviceId #{@_deviceId} updated"
+        )
+
+        @on('destroy', () =>
+          @maxDriver.removeListener('PushButtonStateRecieved', pushButtonStateReceivedHandler)
+          env.logger.debug "PushButton #{@_deviceId} PushButtonStateRecieved handler removed"
+        )
+
+        super()
+
+      getBattery:() -> Promise.resolve(@_battery)
+
+      _setBattery: (value) ->
+        if @_battery is value then return
+        @_battery = value
+        @emit 'battery', value
+
+      handleReceivedCmd: (command) ->
+
+      destroy: ->
+        env.logger.debug "PushButton #{@_deviceId} destroyed"
         super()
 
   maxculPlugin = new MaxculPlugin

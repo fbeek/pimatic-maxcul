@@ -89,7 +89,10 @@ module.exports = (env) ->
         cmd42 : "WallThermostatControl"
         cmd43 : "SetComfortTemperature"
         cmd44 : "SetEcoTemperature"
-        cmd50 : "PushButtonState"
+        cmd50 : {
+          functionName : "PushButtonState"
+          id : "50"
+        }
         cmd60 : {
           functionName : "ThermostatState"
           id : 60
@@ -314,6 +317,18 @@ module.exports = (env) ->
 
       env.logger.debug "got data from shutter contact #{packet.getSource()} #{rawBitData.toString()}"
       @.emit('ShutterContactStateRecieved',shutterContactState)
+
+    PushButtonState: (packet) ->
+      rawBitData = new BitSet('0x'+packet.getRawPayload())
+
+      pushButtonState =
+        src : packet.getSource()
+        isOpen : rawBitData.get(0)
+        rfError : rawBitData.get(6)
+        batteryLow : rawBitData.get(7)
+
+      env.logger.debug "got data from push button #{packet.getSource()} #{rawBitData.toString()}"
+      @.emit('PushButtonStateRecieved',pushButtonState)
 
     ThermostatState: (packet) ->
       env.logger.debug "got data from heatingelement #{packet.getSource()} with payload #{packet.getRawPayload()}"
