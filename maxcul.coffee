@@ -73,8 +73,17 @@ module.exports = (env) ->
             type: "number"
             acronym: "T"
             unit: "°C"
+        },
+        {
+          name: 'battery'
+          settings: 
+	    description: "state of the battery"
+            type: "boolean"
+            labels: ['low', 'ok']
+            acronym: "Bat."
         }
       ]
+
 
       constructor: (@config, lastState, @maxDriver, index) ->
         @id = @config.id
@@ -94,6 +103,7 @@ module.exports = (env) ->
         @_measurementOffset = @config.measurementOffset
         @_windowOpenTime = @config.windowOpenTime
         @_windowOpenTemperature = @config.windowOpenTemperature
+        @_valve = lastState?.valve?.value
 
         @_timeInformationHour = ""
 
@@ -120,6 +130,7 @@ module.exports = (env) ->
             @_setSetpoint(thermostatState.desiredTemperature)
             if( thermostatState.measuredTemperature != 0)
               @_setMeasuredTemperature(thermostatState.measuredTemperature)
+            @_setValve(thermostatState.valvePosition)
         )
 
         @on('destroy', () =>
@@ -141,6 +152,11 @@ module.exports = (env) ->
         if @_battery is value then return
         @_battery = value
         @emit 'battery', value
+
+      _setValve: (value) ->
+        if @_valve is value then return
+        @_valve = value
+        @emit 'valve', value
 
       _updateTimeInformation: () ->
         env.logger.debug "Updating time information for deviceId #{@_deviceId}"
