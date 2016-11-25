@@ -144,6 +144,10 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
     Added EcoButton support. Special THANKS to w3stbam for implementing this feature.
 
+* v0.9.5
+
+    Added support for displaying the valve position in the frontend. Also fixed a bug with the battery states of the Heathingthermostats. Special THANKS to treban for supporting this features.
+
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules

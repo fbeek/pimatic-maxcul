@@ -77,13 +77,13 @@ module.exports = (env) ->
         {
           name: 'battery'
           settings: 
-	    description: "state of the battery"
-            type: "boolean"
+            label: "Battery State"
+            description: "state of the battery"
+            type: "string"
             labels: ['low', 'ok']
             acronym: "Bat."
         }
       ]
-
 
       constructor: (@config, lastState, @maxDriver, index) ->
         @id = @config.id
@@ -149,9 +149,11 @@ module.exports = (env) ->
         @emit 'measuredTemperature', measuredTemperature
 
       _setBattery: (value) ->
-        if @_battery is value then return
-        @_battery = value
-        @emit 'battery', value
+        if ( value == 0 ) 
+          @_battery = "ok"
+        else 
+          @_battery = "low"
+        @emit 'battery', @_battery
 
       _setValve: (value) ->
         if @_valve is value then return
