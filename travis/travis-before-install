@@ -1,0 +1,8 @@
+#!/bin/sh
+pwd -P
+cd ..
+mkdir node_modules
+mv pimatic-maxcul node_modules/
+cd node_modules/pimatic
+pwd -P
+npm install sqlite3 pimatic
