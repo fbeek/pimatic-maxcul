@@ -36,4 +36,7 @@
     "node": ">=4.5.x",
     "npm": ">=2.15.x"
   }
+  "scripts": {
+    "test": "node_modules/.bin/mocha test"
+  },
 }
