@@ -26,6 +26,9 @@
     "serialport": "^3.0.0",
     "sprintf-js": "^1.0.3"
   },
+  "devDependencies": {
+    "mocha": "*"
+  },
   "peerDependencies": {
     "pimatic": "0.9.*"
   },
