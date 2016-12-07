@@ -1,20 +1,22 @@
 pimatic-maxcul
 =======================
 
-Status:
+Status
+--------
 Master [![Build Status](https://travis-ci.org/fbeek/pimatic-maxcul.svg?branch=master)](https://travis-ci.org/fbeek/pimatic-maxcul)
-Development [![Build Status](https://travis-ci.org/fbeek/pimatic-maxcul.svg?branch=development)](https://travis-ci.org/fbeek/pimatic-maxcul)
-[![NPM version](https://badge.fury.io/js/pimatic-maxcul.png)](http://badge.fury.io/js/pimatic-maxcul)
 
+Development [![Build Status](https://travis-ci.org/fbeek/pimatic-maxcul.svg?branch=development)](https://travis-ci.org/fbeek/pimatic-maxcul)
+
+NPM Version [![NPM version](https://badge.fury.io/js/pimatic-maxcul.png)](http://badge.fury.io/js/pimatic-maxcul)
+
+
+Information
+---------
 Pimatic plugin to control MAX! home heating devices with a Busware CUL868 usb wireless stick.
 
 At the moment the software is at a development so it could be that some functions are missing.
 
 More informations and function will be coming.
-
-
-Information
----------
 
 Because of the support ending for pimatic 0.8.x, we from now on support only pimatic > 0.9.x !
 
