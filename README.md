@@ -71,6 +71,12 @@ Example device Configuration heating thermostat
       "windowOpenTemperature": 4.5
     },
 
+### Sponsoring
+
+Do you like this plugin? Then please consider a donation to support the development.
+
+<span class="badge-paypal"><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZSZE2U9Z6J26U" title="Donate to this project using Paypal"><img src="https://img.shields.io/badge/paypal-donate-yellow.svg" alt="PayPal Donate Button" /></a></span>
+
 Changelog
 ---------------
 
