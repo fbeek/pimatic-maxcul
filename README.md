@@ -156,6 +156,10 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
     Added support for displaying the valve position in the frontend. Also fixed a bug with the battery states of the Heathingthermostats. Special THANKS to treban for supporting this features.
 
+* v0.9.6
+
+    Mayor Bugfixes
+
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
