@@ -160,6 +160,14 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
 
     Major Bugfixes
 
+* v0.9.7
+
+    removed some typos (Rootie)
+
+THX to:
+-------
+* Rootie
+
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
