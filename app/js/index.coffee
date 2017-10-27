@@ -114,7 +114,7 @@ $(document).on( "templateinit", (event) ->
         @valvePosition.parent().css('display', 'none')
 
     changeModeTo: (mode) ->
-      @device.rest.changeModeTo({mode}, global: no)
+      @device.rest.changeModeTo({mode}, {global: no, timeout: 0})
         .done(ajaxShowToast)
         .fail(ajaxAlertFail)
 
@@ -123,7 +123,7 @@ $(document).on( "templateinit", (event) ->
       if(!isNaN(temp))
         if(temp >= 4.5 && temp <= 30.5)
           @input.spinbox('disable')
-          @device.rest.changeTemperatureTo({temperatureSetpoint}, global: no)
+          @device.rest.changeTemperatureTo({temperatureSetpoint}, {global: no, timeout: 0})
             .done(ajaxShowToast)
             .fail(ajaxAlertFail)
             .always( => @input.spinbox('enable') )
