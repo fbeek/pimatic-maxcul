@@ -164,6 +164,10 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
 
     removed some typos (Rootie)
 
+* v0.9.8
+    
+    Added LOVF handling (Rootie)
+
 THX to:
 -------
 * Rootie
