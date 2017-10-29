@@ -72,6 +72,8 @@ module.exports = (env) ->
             @emit('ready')
           else if (/^Z(.*)/.test(dataString))
             @emit('culDataReceived',dataString)
+          else if (/^LOVF/.test(dataString))
+            @_current.setStatus('sendlimit')
           else
             env.logger.info "received unknown data: #{dataString}"
 
@@ -165,7 +167,10 @@ module.exports = (env) ->
       ).timeout(3000).catch( (err) =>
         @removeAllListeners('gotAck')
         if err.name is "TimeoutError"
-          if packet.getSendTries() < 3
+          if packet.getStatus() == 'sendlimit'
+            @_currentSentPromise = @sendPacket(packet)
+            env.logger.debug("Retransmit packet because of limit overflow")
+          else if packet.getSendTries() < 3
             packet.setSendTries(packet.getSendTries() + 1)
             @_currentSentPromise = @sendPacket(packet)
             env.logger.debug("Retransmit packet #{packet.getRawPacket()}, try #{packet.getSendTries()} of 3")
