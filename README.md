@@ -18,7 +18,7 @@ Because of the support ending for pimatic 0.8.x, we from now on support only pim
 Usage
 ---------
 The maxcul Plugin automatically detects incoming pairing messages and reacts accordingly.
-If you start pimatic with the plugin enable you can enable the debug mode in the settings to get the deviceIds extracted from the incomming pairing messages.
+If you start pimatic with the plugin enable you can enable the debug mode in the settings to get the deviceIds extracted from the incoming pairing messages.
 
 Example Plugin Configuration
 
@@ -71,27 +71,35 @@ Example device Configuration heating thermostat
       "windowOpenTemperature": 4.5
     },
 
+### Sponsoring
+
+Do you like this plugin? Then please consider a donation to support the development.
+
+<span class="badge-paypal"><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZSZE2U9Z6J26U" title="Donate to this project using Paypal"><img src="https://img.shields.io/badge/paypal-donate-yellow.svg" alt="PayPal Donate Button" /></a></span>
+
+<a href="https://flattr.com/submit/auto?fid=jeo2wl&url=https%3A%2F%2Fgithub.com%2Ffbeek%2Fpimatic-maxcul" target="_blank"><img src="http://button.flattr.com/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a>
+
 Changelog
 ---------------
 
 * v0.1.0
 
     This first Version enables the user to receive messages from the MAX! devices. It receives the
-messages, decodes them and prints them to the console or log as debuging information.
+messages, decodes them and prints them to the console or log as debugging information.
 
 * v0.2.0
 
-    This version enables you to pare the max shutter contacts with the pimatic system and use them as
+    This version enables you to pair the max shutter contacts with the pimatic system and use them as
 sensor. Also you can pair the heating thermostats so that they can get the time informations from the
-pimatic system an set the mode (auto/boost/manuel) and switch between the comfy and eco temperature.
+pimatic system and set the mode (auto/boost/manuel) and switch between the comfy and eco temperature.
 
 * v0.2.5
 
-    This Version enables the user to use the thermostat heating elements. You can now set the desired temperature, the mode, show the battery state and the measured temperature in the pimatic frontend
+    This Version enables the user to use the thermostat heating elements. You can now set the desired temperature, the mode, show the battery state and the measured temperature in the pimatic frontend.
 
 * v0.2.9
 
-    Now you can disable or enable the pair feature. So you can lock your system against foreign devices
+    Now you can disable or enable the pair feature. So you can lock your system against foreign devices.
 
 * v0.3.0
 
@@ -99,15 +107,15 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 
 * v0.3.1
 
-    Fixed a bug witch prevents the shutter contacts from updating.
+    Fixed a bug which prevents the shutter contacts from updating.
 
 * v0.4.0
 
-    You can now define some default values for each heating thermostat that can be written wirelessly to the device itself. So you can set a min and max temperature in the device.If this is set, a user can only set a value between this value if he is setting the temperature physically on the device itself. You can set this value in the device config and enable a transmit button in the frontend.If this is clicked the data where transfered to the device. Also this version fixed a bug witch sets the shutter contact to a wrong value.
+    You can now define some default values for each heating thermostat that can be written wirelessly to the device itself. So you can set a min and max temperature in the device. If this is set, a user can only set a value between these values if he is setting the temperature physically on the device itself. You can set this value in the device config and enable a transmit button in the frontend. If this is clicked the data where transferred to the device. Also this version fixed a bug which sets the shutter contact to a wrong value.
 
 * v0.4.1
 
-    Fixed a wrong type for an initial variable value
+    Fixed a wrong type for an initial variable value.
 
 * v0.5.0
 
@@ -126,30 +134,50 @@ pimatic system an set the mode (auto/boost/manuel) and switch between the comfy 
 * v0.9.0
 
     First Version with pimatic 0.9 support. This Version is not compatible with 0.8 anymore because we raised the version of the node-serialport module, version 0.8 users use
-    maxcul v0.5.2 please insted.
+    maxcul v0.5.2 please instead.
 
 * v0.9.1
 
-    Added debug flag to give the user the possiblity to enable debugging messages. Also we hardened the plugin against crashes if there is problem with the serialport.
+    Added debug flag to give the user the possibility to enable debugging messages. Also we hardened the plugin against crashes if there is problem with the serialport.
 
 * v0.9.2
 
-    Smaller Bugfixes and optimizations
+    Smaller Bugfixes and optimizations.
 
 * v0.9.3
 
-    Added a RSSI reporting of received pakages to the debuging messages to check the wireless connection quality. Also smaller bugfixes and optimizations.
+    Added a RSSI reporting of received pakages to the debugging messages to check the wireless connection quality. Also smaller bugfixes and optimizations.
 
 * v0.9.4
 
     Added EcoButton support. Special THANKS to w3stbam for implementing this feature.
+
+* v0.9.5
+
+    Added support for displaying the valve position in the frontend. Also fixed a bug with the battery states of the heating thermostats. Special THANKS to treban for supporting this features.
+
+* v0.9.6
+
+    Major Bugfixes
+
+* v0.9.7
+
+    removed some typos (Rootie)
+
+* v0.9.8
+    
+    Added LOVF handling (Rootie)
+
+THX to:
+-------
+* Rootie
 
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
 * Add group support to handle groups of devices as one
 * Support for programming Week Profile (at the moment there is only the default program in "Auto Mode")
-* possibility to pair the shutters an heating elements directly
+* Possibility to pair the shutters and heating elements directly
 * Wall-Thermostat support
 * Implement ConfigValve support to configure the boost duration
 * Implement a fake wall thermostat to get the data from the thermostats every hour

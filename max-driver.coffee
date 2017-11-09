@@ -110,7 +110,10 @@ module.exports = (env) ->
           env.logger.debug "ignored auto-ack packet"
         else
           if ( packet.getCommand() )
-            @[packet.getCommand()](packet)
+            try
+              @[packet.getCommand()](packet)
+            catch error
+              env.logger.info "Error in handleIncommingMessage Function, command : #{packet.getCommand()}, error: #{error}"
           else
             env.logger.debug "received unknown command id #{packet.getRawType()}"
       else
