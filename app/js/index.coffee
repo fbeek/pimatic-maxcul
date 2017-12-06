@@ -131,6 +131,8 @@ $(document).on( "templateinit", (event) ->
           pimatic.showToast("Input is not valid, it must be between 4.5 (off) and 30.5 (full on)")
       else
         pimatic.showToast("Input is not valid, it must be between 4.5 (off) and 30.5 (full on)")
+
+
   # register the item-class
   pimatic.templateClasses['maxcul-heating-thermostat'] = MaxCulThermostatItem
 )

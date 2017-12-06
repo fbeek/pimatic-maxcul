@@ -37,3 +37,39 @@ script#maxcul-heating-thermostat-template(type='text/template')
       <!-- ko if: $data.getConfig('guiShowBatteryState') -->
       span.battery(data-bind="template: {name: 'attribute-template', data: $data.device.getAttribute('battery'), afterRender: $data.afterAttributeRender }")
       <!-- /ko -->
+
+script#maxcul-wall-thermostat-template(type='text/template')
+  li.sortable.device.no-header.thermostat.maxcul(data-bind='css: {unsynced: !$data.synced()}')
+    label.device-label(data-bind="text: name, tooltip: $data.labelTooltipHtml")
+    .control-elements
+      .controls.no-carousel-slide
+        <!-- ko if: $data.getConfig('guiShowModeControl')  -->
+        .button-control.ui-controlgroup.ui-controlgroup-horizontal.ui-corner-all.ui-mini.no-carousel-slide(data-role='controlgroup', data-type='horizontal', data-mini='true', data-enhanced='true')
+          .ui-controlgroup-controls
+            a.ui-first-child.ui-btn.ui-corner-all.ui-disabled(name='autoButton', data-bind='click: modeAuto') auto
+            a.ui-btn.ui-corner-all(name='manuButton', data-bind='click: modeManu') manu
+            a.ui-last-child.ui-btn.ui-corner-all(name='boostButton', data-bind='click: modeBoost') boost
+        <!-- /ko -->
+        <!-- ko if: $data.getConfig('guiShowPresetControl')  -->
+        .button-control.ui-controlgroup.ui-controlgroup-horizontal.ui-corner-all.ui-mini.no-carousel-slide(data-role='controlgroup', data-type='horizontal', data-mini='true', data-enhanced='true')
+          .ui-controlgroup-controls
+            a.ui-first-child.ui-btn.ui-corner-all(name='ecoButton', data-bind='click: modeEco') eco
+            a.ui-btn.ui-corner-all(name='comfyButton', data-bind='click: modeComfy') comfy
+            a.ui-last-child.ui-btn.ui-corner-all(name='offButton', data-bind='click: modeOff') off
+        <!-- /ko -->
+        <!-- ko if: $data.getConfig('guiShowTemperatureInput') -->
+        .spinbox.no-carousel-slide
+          input(type='text', data-role='spinbox', name='spin', value='4.5', min='4.5', max='30.5', data-mini='true', step='0.5', data-bind='textInput: inputValue')
+        <!-- /ko -->
+        <!-- ko if: $data.getConfig('guiShowConfigButton') -->
+        .button-control.ui-controlgroup.ui-controlgroup-horizontal.ui-corner-all.ui-mini.no-carousel-slide(data-role='controlgroup', data-type='horizontal', data-mini='true', data-enhanced='true')
+          .ui-controlgroup-controls
+            a.ui-first-child.ui-last-child.ui-btn.ui-corner-all(name='transferConfigButton', data-bind='click: writeConfigToDevice') transfer config
+        <!-- /ko -->
+    .attributes
+      <!-- ko if: $data.getConfig('guiShowMeasuredTemperature') -->
+      span.measured-temperature(data-bind="template: {name: 'attribute-template', data: $data.device.getAttribute('measuredTemperature'), afterRender: $data.afterAttributeRender }")
+      <!-- /ko -->
+      <!-- ko if: $data.getConfig('guiShowBatteryState') -->
+      span.battery(data-bind="template: {name: 'attribute-template', data: $data.device.getAttribute('battery'), afterRender: $data.afterAttributeRender }")
+      <!-- /ko -->
