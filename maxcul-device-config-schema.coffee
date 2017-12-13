@@ -140,10 +140,13 @@ module.exports = {
         description : "Group/Room id of the Device"
         type: "string"
         default: "00"
+<<<<<<< HEAD
       pairId:
         description : "Group/Room id of the Device"
         type: "string"
         default: "000000"  
+=======
+>>>>>>> 115f3a030020738f8744f2d1492d7f768c6763fe
       comfyTemp:
         description: "The defined comfort mode temperature"
         type: "number"

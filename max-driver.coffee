@@ -226,12 +226,20 @@ module.exports = (env) ->
       @sendMsg("03",@baseAddress,dest,payload,"00","04",deviceType);
 
     sendGroup: (dest, groupId, deviceType) ->
+<<<<<<< HEAD
       @sendMsg("22",@baseAddress,dest,groupId,"00","00",deviceType);
 
     sendPair: (dest, pairId, pairTyp, deviceType) ->
       payload = Sprintf('%s%02x',pairId,pairTyp)
       env.logger.debug "send Pair packet #{payload} "
       @sendMsg("20",@baseAddress,dest,payload,"00","00",deviceType);
+=======
+      payload = Sprintf('%02x', groupId)
+      @sendMsg("22",@baseAddress,dest,payload,"00","00",deviceType);
+
+    sendPair: (dest, pairId, deviceType) ->
+      @sendMsg("20",@baseAddress,dest,pairId,"00","00",deviceType);
+>>>>>>> 115f3a030020738f8744f2d1492d7f768c6763fe
 
     sendConfig: (dest,comfortTemperature,ecoTemperature,minimumTemperature,maximumTemperature,offset,windowOpenTime,windowOpenTemperature,deviceType) ->
       comfortTemperatureValue = Sprintf('%02x',(comfortTemperature*2))
@@ -368,7 +376,11 @@ module.exports = (env) ->
         WallthermostatState =
           src : packet.getSource()
           mode : rawBitData.getRange(0,1)
+<<<<<<< HEAD
           desiredTemperature : (('0x'+(packet.getRawPayload().substr(4,2))) & 0x7F) / 2.0
+=======
+          desiredTemperature : ('0x'+(packet.getRawPayload().substr(4,2))) & 0x7F) / 2.0
+>>>>>>> 115f3a030020738f8744f2d1492d7f768c6763fe
           measuredTemperature : 0
           dstSetting : rawBitData.get(3)
           langateway : rawBitData.get(4)
@@ -381,28 +393,47 @@ module.exports = (env) ->
       desiredRaw = '0x'+(packet.getRawPayload().substr(0,2))
       measuredRaw = '0x'+(packet.getRawPayload().substr(2,2))
       desired = (desiredRaw & 0x7F) / 2.0
+<<<<<<< HEAD
       measured = ((((desiredRaw & 0x80)*1)<<1) | (measuredRaw)*1) / 10.0
 
       env.logger.debug "got data from wallthermostat #{packet.getSource()} desired temp: #{desired} - measured temp: #{measured}"
+=======
+      measured = ((((desiredRaw & 0x80)*1)<<1) | (measuredRaw)*1)
+      env.logger.debug parseInt(measured) / 10
+>>>>>>> 115f3a030020738f8744f2d1492d7f768c6763fe
 
       WallThermostatControl =
         src : packet.getSource()
         desired : desired
         measured : measured
+<<<<<<< HEAD
       @.emit('WallThermostatControlRecieved',WallThermostatControl)
+=======
+      @.emit('WallThermostatControlRecieved',wallSetTemp)
+
+      env.logger.debug "got data from wallthermostat #{packet.getSource()} desired temp: #{desired} - measured temp: #{measured}"
+>>>>>>> 115f3a030020738f8744f2d1492d7f768c6763fe
 
     WallThermostatSetTemp: (packet) ->
       setTemp = ('0x'+packet.getRawPayload() & 0x3f) / 2.0
       mode = ('0x'+packet.getRawPayload())>>6
 
+<<<<<<< HEAD
       env.logger.debug "got data from wallthermostat #{packet.getSource()} set new temp #{setTemp} mode #{mode}"
 
+=======
+>>>>>>> 115f3a030020738f8744f2d1492d7f768c6763fe
       wallSetTemp =
         src : packet.getSource()
         mode : mode
         temp : setTemp
       @.emit('WallThermostatSetTempRecieved',wallSetTemp)
 
+<<<<<<< HEAD
+=======
+      env.logger.debug "got data from wallthermostat #{packet.getSource()} set new temp #{setTemp} mode #{mode}"
+
+>>>>>>> 115f3a030020738f8744f2d1492d7f768c6763fe
     ThermostatState: (packet) ->
       env.logger.debug "got data from heatingelement #{packet.getSource()} with payload #{packet.getRawPayload()}"
 

@@ -378,8 +378,11 @@ module.exports = (env) ->
       @_minimumTemperature = @config.minimumTemperature
       @_maximumTemperature = @config.maximumTemperature
       @_measurementOffset = @config.measurementOffset
+<<<<<<< HEAD
       @_groupId = @config.groupId.toLowerCase()
       @_pairId = @config.pairId.toLowerCase()
+=======
+>>>>>>> 115f3a030020738f8744f2d1492d7f768c6763fe
 
       @_timeInformationHour = ""
 
@@ -467,6 +470,7 @@ module.exports = (env) ->
 
     transferConfigToDevice: () ->
       env.logger.info "transfer config to device #{@_deviceId}"
+<<<<<<< HEAD
       if @_pairId != "000000"
         @maxDriver.sendPair(@_deviceId,@_pairId,1,@constructor.deviceType)
         env.logger.info "send pairId #{@_pairId} to device #{@_deviceId}"
@@ -474,6 +478,8 @@ module.exports = (env) ->
       if @_groupId != "00"
         @maxDriver.sendGroup(@_deviceId,@_groupId,@constructor.deviceType)
 
+=======
+>>>>>>> 115f3a030020738f8744f2d1492d7f768c6763fe
       return @maxDriver.sendConfig(
           @_deviceId,
           @_comfortTemperature,
