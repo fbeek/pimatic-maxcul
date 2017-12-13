@@ -23,7 +23,8 @@ module.exports = (env) ->
       deviceTypeClasseNames = [
         MaxculShutterContact,
         MaxculHeatingThermostat,
-        MaxculPushButton
+        MaxculPushButton,
+        MaxculWallThermostat
       ]
 
       @maxDriver = new MaxDriver(baseAddress, @config.enablePairMode, @config.serialPortName, @config.baudrate)
@@ -76,7 +77,7 @@ module.exports = (env) ->
         },
         {
           name: 'battery'
-          settings: 
+          settings:
             label: "Battery State"
             description: "state of the battery"
             type: "string"
@@ -104,6 +105,10 @@ module.exports = (env) ->
         @_windowOpenTime = @config.windowOpenTime
         @_windowOpenTemperature = @config.windowOpenTemperature
         @_valve = lastState?.valve?.value
+
+        @_groupId = @config.groupId.toLowerCase()
+        @_pairId = @config.pairId.toLowerCase()
+
 
         @_timeInformationHour = ""
 
@@ -149,9 +154,9 @@ module.exports = (env) ->
         @emit 'measuredTemperature', measuredTemperature
 
       _setBattery: (value) ->
-        if ( value == 0 ) 
+        if ( value == 0 )
           @_battery = "ok"
-        else 
+        else
           @_battery = "low"
         @emit 'battery', @_battery
 
@@ -196,6 +201,12 @@ module.exports = (env) ->
 
       transferConfigToDevice: () ->
         env.logger.info "transfer config to device #{@_deviceId}"
+        if @_pairId != "000000"
+          @maxDriver.sendPair(@_deviceId,@_pairId,3,@constructor.deviceType)
+          env.logger.info "send pairId #{@_pairId} to device #{@_deviceId}"
+        if @_groupId != "00"
+          @maxDriver.sendGroup(@_deviceId,@_groupId,@constructor.deviceType)
+
         return @maxDriver.sendConfig(
             @_deviceId,
             @_comfortTemperature,
@@ -319,6 +330,172 @@ module.exports = (env) ->
       destroy: ->
         env.logger.debug "PushButton #{@_deviceId} destroyed"
         super()
+
+  # Class that represents a MAX! HeatingThermostat
+  class MaxculWallThermostat extends env.devices.HeatingThermostat
+
+    @_decalcDays: ["Sat","Sun","Mon","Tue","Wed","Thu","Fri"]
+    @_modes: ["auto", "manu", "temporary", "boost"]
+    @_boostDurations: [0,5,10,15,20,25,30,60]
+
+    @deviceType: "WallMountedThermostat"
+    template: "maxcul-wall-thermostat"
+
+    _extendetAttributes:[
+      {
+        name: 'measuredTemperature'
+        settings:
+          label: "Measured Temperature"
+          description: "The temp that the device has measured"
+          type: "number"
+          acronym: "T"
+          unit: "°C"
+      },
+      {
+        name: 'battery'
+        settings:
+          label: "Battery State"
+          description: "state of the battery"
+          type: "string"
+          labels: ['low', 'ok']
+          acronym: "Bat."
+      }
+    ]
+
+    constructor: (@config, lastState, @maxDriver, index) ->
+      @id = @config.id
+      @_index = index
+      @name = @config.name
+      @_deviceId = @config.deviceId.toLowerCase()
+      @_mode = lastState?.mode?.value or "auto"
+      @_battery = lastState?.battery?.value or "ok"
+      @_temperatureSetpoint = lastState?.temperatureSetpoint?.value or 17
+      @_measuredTemperature = lastState?.measuredTemperature?.value
+      @_lastSendTime = 0
+
+      @_comfortTemperature = @config.comfyTemp
+      @_ecoTemperature = @config.ecoTemp
+      @_minimumTemperature = @config.minimumTemperature
+      @_maximumTemperature = @config.maximumTemperature
+      @_measurementOffset = @config.measurementOffset
+      @_groupId = @config.groupId.toLowerCase()
+      @_pairId = @config.pairId.toLowerCase()
+
+      @_timeInformationHour = ""
+
+      @actions['transferConfigToDevice'] =
+        params:{}
+
+      for Attribute in @_extendetAttributes
+        do (Attribute) =>
+          @addAttribute(Attribute.name,Attribute.settings)
+
+      @maxDriver.on('checkTimeIntervalFired', checkTimeIntervalFiredHandler = () =>
+        @_updateTimeInformation()
+      )
+
+      @maxDriver.on('deviceRequestTimeInformation',deviceRequestTimeInformationHandlder = (device) =>
+        if device == @_deviceId
+          @_updateTimeInformation()
+      )
+
+      @maxDriver.on('ThermostatStateRecieved', thermostatStateRecievedHandler = (thermostatState) =>
+        if(@_deviceId == thermostatState.src)
+          @_setBattery(thermostatState.batterylow)
+          @_setMode(@constructor._modes[thermostatState.mode])
+          @_setSetpoint(thermostatState.desiredTemperature)
+          if( thermostatState.measuredTemperature != 0)
+            @_setMeasuredTemperature(thermostatState.measuredTemperature)
+          @_setValve(thermostatState.valvePosition)
+      )
+
+      @on('destroy', () =>
+        @maxDriver.removeListener('deviceRequestTimeInformation', deviceRequestTimeInformationHandlder)
+        @maxDriver.removeListener('WallThermostatStateRecieved', thermostatStateRecievedHandler)
+        @maxDriver.removeListener('checkTimeIntervalFired', checkTimeIntervalFiredHandler)
+
+        env.logger.debug "Thermostat #{@_deviceId} handlers removed"
+      )
+
+      super()
+
+    _setMeasuredTemperature: (measuredTemperature) ->
+      if @_measuredTemperature is measuredTemperature then return
+      @_measuredTemperature = measuredTemperature
+      @emit 'measuredTemperature', measuredTemperature
+
+    _setBattery: (value) ->
+      if ( value == 0 )
+        @_battery = "ok"
+      else
+        @_battery = "low"
+      @emit 'battery', @_battery
+
+    _updateTimeInformation: () ->
+      env.logger.debug "Updating time information for deviceId #{@_deviceId}"
+      @maxDriver.sendTimeInformation(@_deviceId,@constructor.deviceType)
+
+    changeModeTo: (mode) ->
+      if @_mode is mode then return Promise.resolve true
+
+      if mode is "auto"
+        temperatureSetpoint = null
+      else
+        temperatureSetpoint = @_temperatureSetpoint
+        env.logger.debug "Set desired mode to #{mode} for deviceId #{@_deviceId}"
+
+      @maxDriver.sendDesiredTemperature(@_deviceId, temperatureSetpoint, mode, "00", @constructor.deviceType).then( =>
+        @_lastSendTime = new Date().getTime()
+        @_setMode(mode)
+        @_setSetpoint(temperatureSetpoint)
+        return Promise.resolve true
+      ).catch ( (err) =>
+         return Promise.reject err
+      )
+
+    changeTemperatureTo: (temperatureSetpoint) ->
+      if @_temperatureSetpoint is temperatureSetpoint then return Promise.resolve true
+      env.logger.debug "Set desired temperature #{temperatureSetpoint} for deviceId #{@_deviceId}"
+      @maxDriver.sendDesiredTemperature(@_deviceId, temperatureSetpoint, @_mode, "00", @constructor.deviceType).then( =>
+        @_lastSendTime = new Date().getTime()
+        @_setSynced(true)
+        @_setSetpoint(temperatureSetpoint)
+        return Promise.resolve true
+      ).catch( (err) =>
+        return Promise.reject err
+      )
+
+    transferConfigToDevice: () ->
+      env.logger.info "transfer config to device #{@_deviceId}"
+      if @_pairId != "000000"
+        @maxDriver.sendPair(@_deviceId,@_pairId,1,@constructor.deviceType)
+        env.logger.info "send pairId #{@_pairId} to device #{@_deviceId}"
+
+      if @_groupId != "00"
+        @maxDriver.sendGroup(@_deviceId,@_groupId,@constructor.deviceType)
+
+      return @maxDriver.sendConfig(
+          @_deviceId,
+          @_comfortTemperature,
+          @_ecoTemperature,
+          @_minimumTemperature,
+          @_maximumTemperature,
+          @_measurementOffset,
+          null,
+          null,
+          @constructor.deviceType
+        )
+
+    getEcoTemperature: () -> Promise.resolve(@_ecoTemperature)
+    getComfortTemperature: () -> Promise.resolve(@_comfortTemperature)
+    getMeasuredTemperature: () -> Promise.resolve(@_measuredTemperature)
+
+    getTemplateName: -> "maxcul-wall-thermostat"
+
+    destroy: ->
+      env.logger.debug "Thermostat #{@_deviceId} destroyed"
+      super()
+
 
   maxculPlugin = new MaxculPlugin
   return maxculPlugin

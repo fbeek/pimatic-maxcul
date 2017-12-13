@@ -85,8 +85,14 @@ module.exports = (env) ->
           functionName : "ShutterContactState"
           id : "30"
         }
-        cmd40 : "SetTemperature" # Send by the Wallthermostat
-        cmd42 : "WallThermostatControl"
+        cmd40 : {
+          functionName : "WallThermostatSetTemp"
+          id : "40"
+        }
+        cmd42 : {
+          functionName : "WallThermostatControl"
+          id : "42"
+        }
         cmd43 : "SetComfortTemperature"
         cmd44 : "SetEcoTemperature"
         cmd50 : {
@@ -97,7 +103,10 @@ module.exports = (env) ->
           functionName : "ThermostatState"
           id : 60
         }
-        cmd70 : "WallThermostatState"
+        cmd70 : {
+          functionName : "WallThermostatState"
+          id : 70
+        }
         cmd82 : "SetDisplayActualTemperature"
         cmdF1 : "WakeUp"
         cmdF0 : "Reset"
@@ -123,17 +132,17 @@ module.exports = (env) ->
       env.logger.debug "decoding Message #{message}"
       message = message.replace(/\n/, '')
       message = message.replace(/\r/, '')
-      
+
       rssi = parseInt(message.slice(-2), 16)
       if rssi >= 128
         rssi = (rssi - 256) / 2 - 74
       else
         rssi = rssi / 2 - 74
       env.logger.debug "RSSI for Message : #{rssi}"
-      
+
       # remove rssi value from message string
       message = message.substring(0, message.length - 2);
-      
+
       data = message.split(/Z(..)(..)(..)(..)(......)(......)(..)(.*)/)
       data.shift() # Removes first element from array, it is the 'Z'.
 
@@ -215,6 +224,14 @@ module.exports = (env) ->
     sendTimeInformation: (dest, deviceType) ->
       payload = @generateTimePayload()
       @sendMsg("03",@baseAddress,dest,payload,"00","04",deviceType);
+
+    sendGroup: (dest, groupId, deviceType) ->
+      @sendMsg("22",@baseAddress,dest,groupId,"00","00",deviceType);
+
+    sendPair: (dest, pairId, pairTyp, deviceType) ->
+      payload = Sprintf('%s%02x',pairId,pairTyp)
+      env.logger.debug "send Pair packet #{payload} "
+      @sendMsg("20",@baseAddress,dest,payload,"00","00",deviceType);
 
     sendConfig: (dest,comfortTemperature,ecoTemperature,minimumTemperature,maximumTemperature,offset,windowOpenTime,windowOpenTemperature,deviceType) ->
       comfortTemperatureValue = Sprintf('%02x',(comfortTemperature*2))
@@ -332,6 +349,59 @@ module.exports = (env) ->
 
       env.logger.debug "got data from push button #{packet.getSource()} #{rawBitData.toString()}"
       @.emit('PushButtonStateRecieved',pushButtonState)
+
+
+    WallThermostatState: (packet) ->
+      env.logger.debug "got data from wallthermostat state #{packet.getSource()} with payload #{packet.getRawPayload()}"
+
+      rawPayload = packet.getRawPayload()
+
+      if( rawPayload.length >= 10)
+        rawPayloadBuffer = new Buffer(rawPayload, 'hex')
+
+        payloadParser = new BinaryParser().uint8('bits').uint8('displaymode').uint8('desiredRaw').uint8('null1').uint8('heaterTemperature')
+
+        rawData = payloadParser.parse(rawPayloadBuffer)
+
+        rawBitData = new BitSet(rawData.bits);
+
+        WallthermostatState =
+          src : packet.getSource()
+          mode : rawBitData.getRange(0,1)
+          desiredTemperature : (('0x'+(packet.getRawPayload().substr(4,2))) & 0x7F) / 2.0
+          measuredTemperature : 0
+          dstSetting : rawBitData.get(3)
+          langateway : rawBitData.get(4)
+          panel : rawBitData.get(5)
+          rferror : rawBitData.get(6)
+          batterylow : rawBitData.get(7)
+
+    WallThermostatControl: (packet) ->
+      rawBitData = new BitSet('0x'+packet.getRawPayload())
+      desiredRaw = '0x'+(packet.getRawPayload().substr(0,2))
+      measuredRaw = '0x'+(packet.getRawPayload().substr(2,2))
+      desired = (desiredRaw & 0x7F) / 2.0
+      measured = ((((desiredRaw & 0x80)*1)<<1) | (measuredRaw)*1) / 10.0
+
+      env.logger.debug "got data from wallthermostat #{packet.getSource()} desired temp: #{desired} - measured temp: #{measured}"
+
+      WallThermostatControl =
+        src : packet.getSource()
+        desired : desired
+        measured : measured
+      @.emit('WallThermostatControlRecieved',WallThermostatControl)
+
+    WallThermostatSetTemp: (packet) ->
+      setTemp = ('0x'+packet.getRawPayload() & 0x3f) / 2.0
+      mode = ('0x'+packet.getRawPayload())>>6
+
+      env.logger.debug "got data from wallthermostat #{packet.getSource()} set new temp #{setTemp} mode #{mode}"
+
+      wallSetTemp =
+        src : packet.getSource()
+        mode : mode
+        temp : setTemp
+      @.emit('WallThermostatSetTempRecieved',wallSetTemp)
 
     ThermostatState: (packet) ->
       env.logger.debug "got data from heatingelement #{packet.getSource()} with payload #{packet.getRawPayload()}"
