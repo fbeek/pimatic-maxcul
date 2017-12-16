@@ -4,44 +4,96 @@ module.exports = {
     title: "Config options for the Maxcul ShutterContact"
     type: "object"
     properties: {
-      id:
-        description: "ID of the Device"
-        type: "string"
-        default: ""
       deviceId:
         description: "ID of the Device in the MAX! Network"
-        type: "string"
-        default: "000000"
-      name:
-        description: "Name of the Device"
         type: "string"
         default: "000000"
       groupId:
         description : "Group/Room id of the Device"
         type: "string"
         default: "00"
+      pairIds:
+        description : "Group/Room id of the Device"
+        type: "array"
+        default: []
+        format: "table"
+        items:
+          type: "object"
+          required: ["pairId"]
+          properties:
+            pairId:
+              description: "Id of the pairing device"
+              type:"string"
+              required: true
+            type:
+              description: "Device typ"
+              type: "string"
+              enum: ["HeatingThermostat","WallMountedThermostat"]
+              required: true
+    }
+  },
+  MaxculFakeShutterContact:{
+    title: "Config options for the Maxcul ShutterContact"
+    type: "object"
+    properties: {
+      deviceId:
+        description: "Fake ID of the Device in the MAX! Network"
+        type: "string"
+        default: "111111"
+      groupId:
+        description : "Group/Room id of the Device"
+        type: "string"
+        default: "00"
+      pairIds:
+        description : "Group/Room id of the Device"
+        type: "array"
+        default: []
+        format: "table"
+        items:
+          type: "object"
+          required: ["pairId"]
+          properties:
+            pairId:
+              description: "Id of the pairing device"
+              type:"string"
+              required: true
+            type:
+              description: "Device typ"
+              type: "string"
+              enum: ["HeatingThermostat","WallMountedThermostat"]
+              required: true
     }
   },
   MaxculPushButton:{
     title: "Config options for the Maxcul PushButton"
     type: "object"
     properties: {
-      id:
-        description: "ID of the Device"
-        type: "string"
-        default: ""
       deviceId:
         description: "ID of the Device in the MAX! Network"
-        type: "string"
-        default: "000000"
-      name:
-        description: "Name of the Device"
         type: "string"
         default: "000000"
       groupId:
         description : "Group/Room id of the Device"
         type: "string"
         default: "00"
+      pairIds:
+        description : "Group/Room id of the Device"
+        type: "array"
+        default: []
+        format: "table"
+        items:
+          type: "object"
+          required: ["pairId"]
+          properties:
+            pairId:
+              description: "Id of the pairing device"
+              type:"string"
+              required: true
+            type:
+              description: "Device typ"
+              type: "string"
+              enum: ["HeatingThermostat","WallMountedThermostat"]
+              required: true
     }
   },
   MaxculHeatingThermostat:{
@@ -49,26 +101,32 @@ module.exports = {
     type: "object"
     extensions: ["xAttributeOptions"]
     properties: {
-      id:
-        description: "ID of the Device"
-        type: "string"
-        default: ""
       deviceId:
         description: "ID of the Device in the MAX! Network"
-        type: "string"
-        default: "000000"
-      name:
-        description: "Name of the Device"
         type: "string"
         default: "000000"
       groupId:
         description : "Group/Room id of the Device"
         type: "string"
         default: "00"
-      pairId:
+      pairIds:
         description : "Group/Room id of the Device"
-        type: "string"
-        default: "000000"
+        type: "array"
+        default: []
+        format: "table"
+        items:
+          type: "object"
+          required: ["pairId"]
+          properties:
+            pairId:
+              description: "Id of the pairing device"
+              type:"string"
+              required: true
+            type:
+              description: "Device typ"
+              type: "string"
+              enum: ["WallMountedThermostat","ShutterContact"]
+              required: true
       comfyTemp:
         description: "The defined comfort mode temperature"
         type: "number"
@@ -140,13 +198,101 @@ module.exports = {
         description : "Group/Room id of the Device"
         type: "string"
         default: "00"
-<<<<<<< HEAD
-      pairId:
+      pairIds:
+        description : "Group/Room id of the Device"
+        type: "array"
+        default: []
+        format: "table"
+        items:
+          type: "object"
+          required: ["pairId"]
+          properties:
+            pairId:
+              description: "Id of the pairing device"
+              type:"string"
+              required: true
+            type:
+              description: "Device typ"
+              type: "string"
+              enum: ["HeatingThermostat","ShutterContact"]
+              required: true
+      comfyTemp:
+        description: "The defined comfort mode temperature"
+        type: "number"
+        default: 21
+      ecoTemp:
+        description: "The defined eco mode temperature"
+        type: "number"
+        default: 17
+      guiShowModeControl:
+        description: "Show the mode buttons in the gui"
+        type: "boolean"
+        default: true
+      guiShowPresetControl:
+        description: "Show the preset temperatures in the gui"
+        type: "boolean"
+        default: true
+      guiShowTemperatureInput:
+        description: "Show the temperature input spinbox in the gui"
+        type: "boolean"
+        default: true
+      guiShowMeasuredTemperature:
+        description: "Show the measured temperature in the gui"
+        type: "boolean"
+        default: true
+      guiShowBatteryState:
+        description: "Show the battery state in the gui"
+        type: "boolean"
+        default: true
+      guiShowConfigButton:
+        description: "Show a button which which when pressed, transfers the config (eco Mode Settings etc.) to the device."
+        type: "boolean"
+        default: false
+      minimumTemperature:
+        description: "The defined minimum temperature that can be set ON THE DEVICE ITSELF"
+        type: "number"
+        default: 4.5
+      maximumTemperature:
+        description: "The defined maximum temperature that can be set ON THE DEVICE ITSELF"
+        type: "number"
+        default: 30.5
+      measurementOffset:
+        description: "The defined measurement offset"
+        type: "number"
+        default: 0
+    }
+  },
+  MaxculFakeWallThermostat:{
+    title: "Config options for the Maxcul WallThermostat"
+    type: "object"
+    extensions: ["xAttributeOptions"]
+    properties: {
+      deviceId:
+        description: "ID of the Device in the MAX! Network"
+        type: "string"
+        default: "222222"
+      groupId:
         description : "Group/Room id of the Device"
         type: "string"
-        default: "000000"  
-=======
->>>>>>> 115f3a030020738f8744f2d1492d7f768c6763fe
+        default: "00"
+      pairIds:
+        description : "Group/Room id of the Device"
+        type: "array"
+        default: []
+        format: "table"
+        items:
+          type: "object"
+          required: ["pairId"]
+          properties:
+            pairId:
+              description: "Id of the pairing device"
+              type:"string"
+              required: true
+            type:
+              description: "Device typ"
+              type: "string"
+              enum: ["HeatingThermostat","ShutterContact"]
+              required: true
       comfyTemp:
         description: "The defined comfort mode temperature"
         type: "number"
