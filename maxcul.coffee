@@ -416,7 +416,6 @@ module.exports = (env) ->
       @emit 'battery', @_battery
 
     _setContact: (value) ->
-      if @_contact is value then return
       @_contact = value
       @emit 'contact', value
       
