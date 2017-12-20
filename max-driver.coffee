@@ -269,6 +269,7 @@ module.exports = (env) ->
       @sendMsg("11",@baseAddress,dest,payload,"00","00",deviceType)
       return Promise.resolve true
 
+    #send fake shutter message
     sendShutterMessage: (dest, src, event, groupId, deviceType) ->
       state = if event then "10" else "12"
       if groupId == "00"
@@ -276,27 +277,25 @@ module.exports = (env) ->
       else
         return @sendMsg("30",src,dest,state,groupId,"06",deviceType);
 
+    #send fake wallthermostat message
     sendTemperatureMessage: (dest, measuredTemp, desiredTemp, groupId, deviceType) ->
-
       if measuredTemp < 0
         measuredTemp = 0
       if measuredTemp > 51
         measuredTemp = 51
-
       if desiredTemp <= 4.5
         desiredTemp = 4.5
       if desiredTemp >= 30.5
         desiredTemp = 30.5
-
       val2 = measuredTemp * 10
       val1 = ((val2 & 0x100)>>1) | ((desiredTemp * 2) & 0x7F)
       val2 = val2 & 0xFF
-      payload = Sprintf('%02x%02x',$val1,$val2)
+      payload = Sprintf('%02x%02x',val1,val2)
 
       if groupId == "00"
-        return @sendMsg("42",@baseAddress,dest,payload,"00","00",deviceType);
+        return @sendMsg("42",@baseAddress,dest,payload,"00","00",deviceType)
       else
-        return @sendMsg("42",@baseAddress,dest,payload,groupId,"04",deviceType);
+        return @sendMsg("42",@baseAddress,dest,payload,groupId,"04",deviceType)
 
     sendDesiredTemperature: (dest,temperature,mode,groupId,deviceType) ->
       modeBin = switch mode
@@ -361,7 +360,7 @@ module.exports = (env) ->
         else if ( packet.getDest() == "000000" ) #The device is new and needs a full pair
           env.logger.debug "beginn pairing of a new device with deviceId #{packet.getSource()}"
           @sendMsg("01", @baseAddress, packet.getSource(), "00", "00", "00", "")
-          @.emit('NewDevice',packet.getSource()) 
+          @.emit('NewDevice',packet.getSource())
       else
           env.logger.debug ", but pairing is disabled so ignore"
 

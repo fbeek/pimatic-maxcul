@@ -1,5 +1,17 @@
 $(document).on( "templateinit", (event) ->
 
+  class MaxCulContactItem extends pimatic.ContactItem
+
+    getItemTemplate: => 'maxcul-contact'
+
+    constructor: (templData, @device) ->
+      super(templData, @device)
+
+    writeConfigToDevice: ->
+      @device.rest.transferConfigToDevice()
+        .done(ajaxShowToast)
+        .fail(ajaxAlertFail)
+
   class MaxCulThermostatItem extends pimatic.DeviceItem
 
     constructor: (templData, @device) ->
@@ -132,8 +144,8 @@ $(document).on( "templateinit", (event) ->
       else
         pimatic.showToast("Input is not valid, it must be between 4.5 (off) and 30.5 (full on)")
 
-
   # register the item-class
   pimatic.templateClasses['maxcul-heating-thermostat'] = MaxCulThermostatItem
   pimatic.templateClasses['maxcul-wall-thermostat'] = MaxCulThermostatItem
+  pimatic.templateClasses['maxcul-contact'] = MaxCulContactItem
 )

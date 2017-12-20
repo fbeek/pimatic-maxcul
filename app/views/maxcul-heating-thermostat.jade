@@ -73,3 +73,16 @@ script#maxcul-wall-thermostat-template(type='text/template')
       <!-- ko if: $data.getConfig('guiShowBatteryState') -->
       span.battery(data-bind="template: {name: 'attribute-template', data: $data.device.getAttribute('battery'), afterRender: $data.afterAttributeRender }")
       <!-- /ko -->
+
+script#maxcul-contact-template(type='text/template')
+  li.sortable.device.no-header.thermostat.maxcul
+    label.device-label(data-bind="text: name, tooltip: $data.labelTooltipHtml")
+    .control-elements
+      .controls.no-carousel-slide
+        <!-- ko if: $data.getConfig('guiShowConfigButton') -->
+        .button-control.ui-controlgroup.ui-controlgroup-horizontal.ui-corner-all.ui-mini.no-carousel-slide(data-role='controlgroup', data-type='horizontal', data-mini='true', data-enhanced='true')
+          .ui-controlgroup-controls
+            a.ui-first-child.ui-last-child.ui-btn.ui-corner-all(name='transferConfigButton', data-bind='click: writeConfigToDevice') transfer config
+        <!-- /ko -->
+        span.error(data-bind="text: ($data.error() ? $data.error() : '') ")
+        span.attributes(data-bind="template: { name: 'attribute-template', foreach: $data.device.attributes, afterRender: $data.afterAttributeRender }")

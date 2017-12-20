@@ -249,6 +249,7 @@ module.exports = (env) ->
   class MaxculShutterContact extends env.devices.ContactSensor
 
     @deviceType = "ShutterContact"
+    template: "maxcul-contact"
 
     constructor: (@config, lastState, @maxDriver, index) ->
       @id = @config.id
@@ -257,6 +258,11 @@ module.exports = (env) ->
       @_contact = lastState?.contact?.value
       @_battery = lastState?.battery?.value
       @_index = index
+      @_groupId = @config.groupId.toLowerCase()
+      @_pairIds = @config.pairIds
+
+      @actions['transferConfigToDevice'] =
+        params:{}
 
       @addAttribute(
         'battery',
@@ -283,6 +289,8 @@ module.exports = (env) ->
 
       super()
 
+    getTemplateName: -> "maxcul-contact"
+
     getBattery:() -> Promise.resolve(@_battery)
 
     _setBattery: (value) ->
@@ -291,6 +299,16 @@ module.exports = (env) ->
       @emit 'battery', value
 
     handleReceivedCmd: (command) ->
+
+    transferConfigToDevice: () ->
+      env.logger.info "transfer config to device #{@_deviceId}"
+      for pid in @_pairIds
+        if pid.pairId != "000000"
+          @maxDriver.sendPair(@_deviceId,pid.pairId.toLowerCase(),pid.type,@constructor.deviceType)
+          env.logger.info "send pairId #{pid.pairId} to device #{@_deviceId}"
+      if @_groupId != "00"
+        @maxDriver.sendGroup(@_deviceId,@_groupId,@constructor.deviceType)
+        env.logger.info "send groupID #{@_groupId} to device #{@_deviceId}"
 
     destroy: ->
       env.logger.debug "ShutterContact #{@_deviceId} destroyed"
@@ -312,17 +330,17 @@ module.exports = (env) ->
       @name = @config.name
       @_deviceId = @config.deviceId.toLowerCase()
       @_groupId = @config.groupId.toLowerCase()
-      @_pairId = @config.pairId.toLowerCase()
+      @_pairIds = @config.pairIds
       @_index = index
 
       super()
 
     changeContactTo: (contact) ->
-      @maxDriver.sendShutterMessage(@_pairId, @_deviceId, contact, @_groupId , @constructor.deviceType).then( =>
+      Promise.map(@_pairIds , (pids) =>
+        return @maxDriver.sendShutterMessage(pids.pairId, @_deviceId, contact, @_groupId , @constructor.deviceType)
+      ).then( =>
         @_setContact(contact)
         return Promise.resolve true
-      ).catch( (err) =>
-        return Promise.reject err
       )
 
     destroy: ->
@@ -333,6 +351,7 @@ module.exports = (env) ->
   class MaxculPushButton extends env.devices.ContactSensor
 
     @deviceType = "PushButton"
+    template: "maxcul-contact"
 
     constructor: (@config, lastState, @maxDriver, index) ->
       @id = @config.id
@@ -341,6 +360,11 @@ module.exports = (env) ->
       @_contact = lastState?.contact?.value
       @_battery = lastState?.battery?.value
       @_index = index
+      @_groupId = @config.groupId.toLowerCase()
+      @_pairIds = @config.pairIds
+
+      @actions['transferConfigToDevice'] =
+        params:{}
 
       @addAttribute(
         'battery',
@@ -367,6 +391,8 @@ module.exports = (env) ->
 
       super()
 
+    getTemplateName: -> "maxcul-contact"
+
     getBattery:() -> Promise.resolve(@_battery)
 
     _setBattery: (value) ->
@@ -375,6 +401,16 @@ module.exports = (env) ->
       @emit 'battery', value
 
     handleReceivedCmd: (command) ->
+
+    transferConfigToDevice: () ->
+      env.logger.info "transfer config to device #{@_deviceId}"
+      for pid in @_pairIds
+        if pid.pairId != "000000"
+          @maxDriver.sendPair(@_deviceId,pid.pairId.toLowerCase(),pid.type,@constructor.deviceType)
+          env.logger.info "send pairId #{pid.pairId} to device #{@_deviceId}"
+      if @_groupId != "00"
+        @maxDriver.sendGroup(@_deviceId,@_groupId,@constructor.deviceType)
+        env.logger.info "send groupID #{@_groupId} to device #{@_deviceId}"
 
     destroy: ->
       env.logger.debug "PushButton #{@_deviceId} destroyed"
@@ -424,18 +460,91 @@ module.exports = (env) ->
 
     constructor: (@config, lastState, @maxDriver, index) ->
       super(@config, lastState, @maxDriver, index)
+      @_exprChangeListeners = []
+      @_vars = maxculPlugin.framework.variableManager
+      info = null
+      evaluate = ( =>
+        # wait till VariableManager is ready
+        return @_vars.waitForInit().then( =>
+          unless info?
+            info = @_vars.parseVariableExpression(@config.refTemp)
+            @_vars.notifyOnChange(info.tokens, evaluate)
+            @_exprChangeListeners.push evaluate
+
+          switch info.datatype
+            when "numeric" then @_vars.evaluateNumericExpression(info.tokens)
+            when "string" then @_vars.evaluateStringExpression(info.tokens)
+            else
+              assert false
+        ).then((val) =>
+          val = @_getNumber(val)
+          @_setMeasuredTemperature(val)
+          Promise.map(@_pairIds ,(pids) =>
+            return @maxDriver.sendTemperatureMessage(pids.pairId, @_measuredTemperature, @_temperatureSetpoint, @_groupId, @constructor.deviceType)
+          ).then( =>
+            @_lastSendTime = new Date().getTime()
+            return Promise.resolve true
+          )
+        ).catch((error) =>
+          env.logger.error "Error on device #{@_deviceId}:", error.message
+        )
+      )
+      evaluate()
+
+    _getNumber: (value) ->
+      if value?
+        numValue = Number value
+        unless isNaN numValue
+          return numValue
+        else
+          errorMessage = "Input value is not a number: #{value}"
+      else
+        errorMessage = "Input value is null or undefined"
+        throw new Error errorMessage
 
     getTemplateName: -> "maxcul-wall-thermostat"
 
     destroy: ->
+      @_vars.cancelNotifyOnChange(cl) for cl in @_exprChangeListeners
       env.logger.debug "WallFakeThermostat #{@_deviceId} destroyed"
       super()
 
     changeModeTo: (mode) ->
       if @_mode is mode then return Promise.resolve true
+      if mode is "auto"
+        temperatureSetpoint = null
+      else
+        temperatureSetpoint = @_temperatureSetpoint
+        env.logger.debug "Set desired mode to #{mode} for deviceId #{@_deviceId}"
+
+      Promise.map(@_pairIds , (pids) =>
+        return @maxDriver.sendDesiredTemperature(pids.pairId, temperatureSetpoint, mode, @_groupId , @constructor.deviceType)
+      ).then( =>
+        @_lastSendTime = new Date().getTime()
+        @_setMode(mode)
+        @_setSetpoint(temperatureSetpoint)
+        return Promise.resolve true
+      )
 
     changeTemperatureTo: (temperatureSetpoint) ->
       if @_temperatureSetpoint is temperatureSetpoint then return Promise.resolve true
+      env.logger.debug "Set desired temperature #{temperatureSetpoint} for deviceId #{@_deviceId}"
+      Promise.map(@_pairIds , (pids) =>
+        return @maxDriver.sendDesiredTemperature(pids.pairId, temperatureSetpoint, @_mode, @_groupId , @constructor.deviceType)
+      ).then( =>
+        @_lastSendTime = new Date().getTime()
+        @_setSynced(true)
+        @_setSetpoint(temperatureSetpoint)
+        return Promise.resolve true
+      )
+
+    transferConfigToDevice: () ->
+      env.logger.debug "Fake doesn't need a config"
+      return Promise.resolve true
+
+    _updateTimeInformation: () ->
+      env.logger.debug "Fake doesn't need a time update"
+      return Promise.resolve true
 
   maxculPlugin = new MaxculPlugin
   return maxculPlugin

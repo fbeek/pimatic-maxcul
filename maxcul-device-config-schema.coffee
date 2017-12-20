@@ -12,6 +12,10 @@ module.exports = {
         description : "Group/Room id of the Device"
         type: "string"
         default: "00"
+      guiShowConfigButton:
+        description: "Show a button which which when pressed, transfers the config (eco Mode Settings etc.) to the device."
+        type: "boolean"
+        default: false
       pairIds:
         description : "Group/Room id of the Device"
         type: "array"
@@ -76,6 +80,10 @@ module.exports = {
         description : "Group/Room id of the Device"
         type: "string"
         default: "00"
+      guiShowConfigButton:
+        description: "Show a button which which when pressed, transfers the config (eco Mode Settings etc.) to the device."
+        type: "boolean"
+        default: false
       pairIds:
         description : "Group/Room id of the Device"
         type: "array"
@@ -293,6 +301,10 @@ module.exports = {
               type: "string"
               enum: ["HeatingThermostat","ShutterContact"]
               required: true
+      refTemp:
+        description: "The reference temperature expression"
+        type: "string"
+        required: true
       comfyTemp:
         description: "The defined comfort mode temperature"
         type: "number"
