@@ -403,12 +403,17 @@ module.exports = (env) ->
     getTemplateName: -> "maxcul-contact"
 
     getBattery:() -> Promise.resolve(@_battery)
-
+  
     _setBattery: (value) ->
       if @_battery is value then return
       @_battery = value
       @emit 'battery', value
 
+    _setContact: (value) ->
+      if @_contact is value then return
+      @_contact = value
+      @emit 'contact', value
+      
     handleReceivedCmd: (command) ->
 
     transferConfigToDevice: () ->
