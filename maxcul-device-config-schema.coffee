@@ -9,15 +9,15 @@ module.exports = {
         type: "string"
         default: "000000"
       groupId:
-        description : "Group/Room id of the Device"
+        description: "Group/Room id of the Device"
         type: "string"
         default: "00"
       guiShowConfigButton:
-        description: "Show a button which which when pressed, transfers the config (eco Mode Settings etc.) to the device."
+        description: "Show a button which when pressed, transfers the config to the device."
         type: "boolean"
         default: false
       pairIds:
-        description : "Group/Room id of the Device"
+        description: "List of paired Device"
         type: "array"
         default: []
         format: "table"
@@ -30,7 +30,7 @@ module.exports = {
               type:"string"
               required: true
             type:
-              description: "Device typ"
+              description: "Device type"
               type: "string"
               enum: ["HeatingThermostat","WallMountedThermostat"]
               required: true
@@ -45,11 +45,11 @@ module.exports = {
         type: "string"
         default: "111111"
       groupId:
-        description : "Group/Room id of the Device"
+        description: "Group/Room id of the Device"
         type: "string"
         default: "00"
       pairIds:
-        description : "Group/Room id of the Device"
+        description: "List of paired Device"
         type: "array"
         default: []
         format: "table"
@@ -62,7 +62,7 @@ module.exports = {
               type:"string"
               required: true
             type:
-              description: "Device typ"
+              description: "Device type"
               type: "string"
               enum: ["HeatingThermostat","WallMountedThermostat"]
               required: true
@@ -77,7 +77,7 @@ module.exports = {
         type: "string"
         default: "000000"
       groupId:
-        description : "Group/Room id of the Device"
+        description: "Group/Room id of the Device"
         type: "string"
         default: "00"
       guiShowConfigButton:
@@ -85,7 +85,7 @@ module.exports = {
         type: "boolean"
         default: false
       pairIds:
-        description : "Group/Room id of the Device"
+        description: "List of paired Device"
         type: "array"
         default: []
         format: "table"
@@ -98,7 +98,7 @@ module.exports = {
               type:"string"
               required: true
             type:
-              description: "Device typ"
+              description: "Device type"
               type: "string"
               enum: ["HeatingThermostat","WallMountedThermostat"]
               required: true
@@ -114,11 +114,11 @@ module.exports = {
         type: "string"
         default: "000000"
       groupId:
-        description : "Group/Room id of the Device"
+        description: "Group/Room id of the Device"
         type: "string"
         default: "00"
       pairIds:
-        description : "Group/Room id of the Device"
+        description: "List of paired Device"
         type: "array"
         default: []
         format: "table"
@@ -131,7 +131,7 @@ module.exports = {
               type:"string"
               required: true
             type:
-              description: "Device typ"
+              description: "Device type"
               type: "string"
               enum: ["WallMountedThermostat","ShutterContact"]
               required: true
@@ -203,11 +203,11 @@ module.exports = {
         type: "string"
         default: "000000"
       groupId:
-        description : "Group/Room id of the Device"
+        description: "Group/Room id of the Device"
         type: "string"
         default: "00"
       pairIds:
-        description : "Group/Room id of the Device"
+        description: "List of paired Device"
         type: "array"
         default: []
         format: "table"
@@ -220,7 +220,7 @@ module.exports = {
               type:"string"
               required: true
             type:
-              description: "Device typ"
+              description: "Device type"
               type: "string"
               enum: ["HeatingThermostat","ShutterContact"]
               required: true
@@ -280,11 +280,11 @@ module.exports = {
         type: "string"
         default: "222222"
       groupId:
-        description : "Group/Room id of the Device"
+        description: "Group/Room id of the Device"
         type: "string"
         default: "00"
       pairIds:
-        description : "Group/Room id of the Device"
+        description: "List of paired Device"
         type: "array"
         default: []
         format: "table"
