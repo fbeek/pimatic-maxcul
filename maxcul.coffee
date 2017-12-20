@@ -276,8 +276,9 @@ module.exports = (env) ->
       @addAttribute(
         'battery',
         {
+          label: "Battery State"
           description: "state of the battery"
-          type: "boolean"
+          type: "string"
           labels: ['low', 'ok']
           acronym: "Bat."
         }
@@ -303,9 +304,11 @@ module.exports = (env) ->
     getBattery:() -> Promise.resolve(@_battery)
 
     _setBattery: (value) ->
-      if @_battery is value then return
-      @_battery = value
-      @emit 'battery', value
+      if ( value == 0 )
+        @_battery = "ok"
+      else
+        @_battery = "low"
+      @emit 'battery', @_battery
 
     handleReceivedCmd: (command) ->
 
@@ -378,8 +381,9 @@ module.exports = (env) ->
       @addAttribute(
         'battery',
         {
+          label: "Battery State"
           description: "state of the battery"
-          type: "boolean"
+          type: "string"
           labels: ['low', 'ok']
           acronym: "Bat."
         }
@@ -405,9 +409,11 @@ module.exports = (env) ->
     getBattery:() -> Promise.resolve(@_battery)
   
     _setBattery: (value) ->
-      if @_battery is value then return
-      @_battery = value
-      @emit 'battery', value
+      if ( value == 0 )
+        @_battery = "ok"
+      else
+        @_battery = "low"
+      @emit 'battery', @_battery
 
     _setContact: (value) ->
       if @_contact is value then return
