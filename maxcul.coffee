@@ -61,6 +61,15 @@ module.exports = (env) ->
         @framework.deviceManager.discoverMessage 'pimatic-maxcul', "pairmode for 30 sec enabled"
         @maxDriver.enablePairMode()
 
+      @maxDriver.on('NewDevice', (device,type) =>
+        config = {
+          name: "maxcul_#{device}",
+          id: "maxcul_#{device}",
+          address: device['9003']
+        }
+        @framework.deviceManager.discoveredDevice( 'pimatic-maxcul ', "New max device: #{config.name}", config )
+      )
+
     # Class that represents a MAX! HeatingThermostat
   class MaxculThermostat extends env.devices.HeatingThermostat
 

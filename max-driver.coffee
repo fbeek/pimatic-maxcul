@@ -360,7 +360,7 @@ module.exports = (env) ->
         else if ( packet.getDest() == "000000" ) #The device is new and needs a full pair
           env.logger.debug "beginn pairing of a new device with deviceId #{packet.getSource()}"
           @sendMsg("01", @baseAddress, packet.getSource(), "00", "00", "00", "")
-          @.emit('NewDevice',packet.getSource())
+          @.emit('NewDevice',packet.getSource(), packet.getRawType())
       else
           env.logger.debug ", but pairing is disabled so ignore"
 
