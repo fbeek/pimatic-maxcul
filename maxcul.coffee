@@ -64,8 +64,7 @@ module.exports = (env) ->
       @maxDriver.on('NewDevice', (device,type) =>
         config = {
           name: "maxcul_#{device}",
-          id: "maxcul_#{device}",
-          address: device['9003']
+          id: "maxcul_#{device}"
         }
         @framework.deviceManager.discoveredDevice( 'pimatic-maxcul ', "New max device: #{config.name}", config )
       )
