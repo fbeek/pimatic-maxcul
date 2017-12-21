@@ -17,23 +17,14 @@ module.exports = (env) ->
     #Holds the instance of the communication-layer
     @comLayer
 
-    #Supportet device types
-    @deviceTypes = [
-      "Cube",
-      "HeatingThermostat",
-      "HeatingThermostatPlus",
-      "WallMountedThermostat",
-      "ShutterContact",
-      "PushButton"
-    ]
     @_waitingForReplyQueue = []
     @msgCount
     @pairModeEnabled
 
-    constructor: (baseAddress, pairModeEnabled, serialPortName, baudrate) ->
+    constructor: (baseAddress, serialPortName, baudrate) ->
       @baseAddress = baseAddress
       @msgCount = 0
-      @pairModeEnabled = pairModeEnabled
+      @pairModeEnabled = false
 
       @comLayer = new CommunicationServiceLayer(baudrate, serialPortName, @baseAddress)
       @comLayer.on("culDataReceived", (data) =>
@@ -52,8 +43,25 @@ module.exports = (env) ->
     connect: () ->
       return @comLayer.connect()
 
+    enablePairMode: () ->
+      @pairModeEnabled = true
+      setTimeout =>
+        @pairModeEnabled = false
+      , 1000 * 30
+
     disconnect: ->
       return @comLayer.disconnect()
+
+    getDeviceId: (dev) ->
+      #Supportet device types
+      @deviceTypes =
+        Cube : 0
+        HeatingThermostat : 1
+        HeatingThermostatPlus : 2
+        WallMountedThermostat : 3
+        ShutterContact : 4
+        PushButton : 5
+      return if dev of @deviceTypes then @deviceTypes[dev] else 255
 
     decodeCmdId: (id) ->
       key = "cmd"+id
@@ -85,8 +93,14 @@ module.exports = (env) ->
           functionName : "ShutterContactState"
           id : "30"
         }
-        cmd40 : "SetTemperature" # Send by the Wallthermostat
-        cmd42 : "WallThermostatControl"
+        cmd40 : {
+          functionName : "WallThermostatSetTemp"
+          id : "40"
+        }
+        cmd42 : {
+          functionName : "WallThermostatControl"
+          id : "42"
+        }
         cmd43 : "SetComfortTemperature"
         cmd44 : "SetEcoTemperature"
         cmd50 : {
@@ -97,7 +111,10 @@ module.exports = (env) ->
           functionName : "ThermostatState"
           id : 60
         }
-        cmd70 : "WallThermostatState"
+        cmd70 : {
+          functionName : "WallThermostatState"
+          id : 70
+        }
         cmd82 : "SetDisplayActualTemperature"
         cmdF1 : "WakeUp"
         cmdF0 : "Reset"
@@ -123,17 +140,17 @@ module.exports = (env) ->
       env.logger.debug "decoding Message #{message}"
       message = message.replace(/\n/, '')
       message = message.replace(/\r/, '')
-      
+
       rssi = parseInt(message.slice(-2), 16)
       if rssi >= 128
         rssi = (rssi - 256) / 2 - 74
       else
         rssi = rssi / 2 - 74
       env.logger.debug "RSSI for Message : #{rssi}"
-      
+
       # remove rssi value from message string
       message = message.substring(0, message.length - 2);
-      
+
       data = message.split(/Z(..)(..)(..)(..)(......)(......)(..)(.*)/)
       data.shift() # Removes first element from array, it is the 'Z'.
 
@@ -216,6 +233,29 @@ module.exports = (env) ->
       payload = @generateTimePayload()
       @sendMsg("03",@baseAddress,dest,payload,"00","04",deviceType);
 
+    sendGroup: (dest, groupId, deviceType) ->
+      @sendMsg("22",@baseAddress,dest,groupId,"00","00",deviceType);
+
+    removeGroup: (dest, groupId, deviceType) ->
+      @sendMsg("23",@baseAddress,dest,"00","00","00",deviceType);
+
+    sendPair: (dest, pairId, pairType, deviceType) ->
+      type= @getDeviceId(pairType)
+      payload = Sprintf('%s%02x',pairId,type)
+      @sendMsg("20",@baseAddress,dest,payload,"00","00",deviceType);
+
+    removePair: (dest, pairId, pairType, deviceType) ->
+      type= @getDeviceId(pairType)
+      payload = Sprintf('%s%02x',pairId,type)
+      @sendMsg("21",@baseAddress,dest,payload,"00","00",deviceType);
+
+    sendDisplayMode: (dest, dmode, deviceType) ->
+      state = if dmode then "04" else "00"
+      @sendMsg("82",@baseAddress,dest,state,"00","00",deviceType);
+
+    sendFactoryReset: (dest, deviceType) ->
+      @sendMsg("F0",@baseAddress,dest,"","00","00",deviceType);
+
     sendConfig: (dest,comfortTemperature,ecoTemperature,minimumTemperature,maximumTemperature,offset,windowOpenTime,windowOpenTemperature,deviceType) ->
       comfortTemperatureValue = Sprintf('%02x',(comfortTemperature*2))
       ecoTemperatureValue = Sprintf('%02x',(ecoTemperature*2))
@@ -228,6 +268,34 @@ module.exports = (env) ->
       payload = comfortTemperatureValue+ecoTemperatureValue+maximumTemperaturenValue+minimumTemperatureValue+offsetValue+windowOpenTempValue+windowOpenTimeValue
       @sendMsg("11",@baseAddress,dest,payload,"00","00",deviceType)
       return Promise.resolve true
+
+    #send fake shutter message
+    sendShutterMessage: (dest, src, event, groupId, deviceType) ->
+      state = if event then "10" else "12"
+      if groupId == "00"
+        return @sendMsg("30",src,dest,state,"00","00",deviceType);
+      else
+        return @sendMsg("30",src,dest,state,groupId,"06",deviceType);
+
+    #send fake wallthermostat message
+    sendTemperatureMessage: (dest, measuredTemp, desiredTemp, groupId, deviceType) ->
+      if measuredTemp < 0
+        measuredTemp = 0
+      if measuredTemp > 51
+        measuredTemp = 51
+      if desiredTemp <= 4.5
+        desiredTemp = 4.5
+      if desiredTemp >= 30.5
+        desiredTemp = 30.5
+      val2 = measuredTemp * 10
+      val1 = ((val2 & 0x100)>>1) | ((desiredTemp * 2) & 0x7F)
+      val2 = val2 & 0xFF
+      payload = Sprintf('%02x%02x',val1,val2)
+
+      if groupId == "00"
+        return @sendMsg("42",@baseAddress,dest,payload,"00","00",deviceType)
+      else
+        return @sendMsg("42",@baseAddress,dest,payload,groupId,"04",deviceType)
 
     sendDesiredTemperature: (dest,temperature,mode,groupId,deviceType) ->
       modeBin = switch mode
@@ -268,8 +336,6 @@ module.exports = (env) ->
       else
         return @sendMsg("40",@baseAddress,dest,payloadHex,groupId,"04",deviceType);
 
-      #return Promise.resolve true
-
     parseTemperature: (temperature) ->
       if temperature == 'on'
         return 30.5
@@ -294,6 +360,7 @@ module.exports = (env) ->
         else if ( packet.getDest() == "000000" ) #The device is new and needs a full pair
           env.logger.debug "beginn pairing of a new device with deviceId #{packet.getSource()}"
           @sendMsg("01", @baseAddress, packet.getSource(), "00", "00", "00", "")
+          @.emit('NewDevice',packet.getSource(), packet.getRawType())
       else
           env.logger.debug ", but pairing is disabled so ignore"
 
@@ -332,6 +399,58 @@ module.exports = (env) ->
 
       env.logger.debug "got data from push button #{packet.getSource()} #{rawBitData.toString()}"
       @.emit('PushButtonStateRecieved',pushButtonState)
+
+    WallThermostatState: (packet) ->
+      env.logger.debug "got data from wallthermostat state #{packet.getSource()} with payload #{packet.getRawPayload()}"
+
+      rawPayload = packet.getRawPayload()
+
+      if( rawPayload.length >= 10)
+        rawPayloadBuffer = new Buffer(rawPayload, 'hex')
+
+        payloadParser = new BinaryParser().uint8('bits').uint8('displaymode').uint8('desiredRaw').uint8('null1').uint8('heaterTemperature')
+
+        rawData = payloadParser.parse(rawPayloadBuffer)
+
+        rawBitData = new BitSet(rawData.bits);
+
+        WallthermostatState =
+          src : packet.getSource()
+          mode : rawBitData.getRange(0,1)
+          desiredTemperature : (('0x'+(packet.getRawPayload().substr(4,2))) & 0x7F) / 2.0
+          measuredTemperature : 0
+          dstSetting : rawBitData.get(3)
+          langateway : rawBitData.get(4)
+          panel : rawBitData.get(5)
+          rferror : rawBitData.get(6)
+          batterylow : rawBitData.get(7)
+
+    WallThermostatControl: (packet) ->
+      rawBitData = new BitSet('0x'+packet.getRawPayload())
+      desiredRaw = '0x'+(packet.getRawPayload().substr(0,2))
+      measuredRaw = '0x'+(packet.getRawPayload().substr(2,2))
+      desired = (desiredRaw & 0x7F) / 2.0
+      measured = ((((desiredRaw & 0x80)*1)<<1) | (measuredRaw)*1) / 10.0
+
+      env.logger.debug "got data from wallthermostat #{packet.getSource()} desired temp: #{desired} - measured temp: #{measured}"
+
+      WallThermostatControl =
+        src : packet.getSource()
+        desired : desired
+        measured : measured
+      @.emit('WallThermostatControlRecieved',WallThermostatControl)
+
+    WallThermostatSetTemp: (packet) ->
+      setTemp = ('0x'+packet.getRawPayload() & 0x3f) / 2.0
+      mode = ('0x'+packet.getRawPayload())>>6
+
+      env.logger.debug "got data from wallthermostat #{packet.getSource()} set new temp #{setTemp} mode #{mode}"
+
+      wallSetTemp =
+        src : packet.getSource()
+        mode : mode
+        temp : setTemp
+      @.emit('WallThermostatSetTempRecieved',wallSetTemp)
 
     ThermostatState: (packet) ->
       env.logger.debug "got data from heatingelement #{packet.getSource()} with payload #{packet.getRawPayload()}"
