@@ -3,17 +3,14 @@ pimatic-maxcul
 
 Pimatic plugin to control MAX! home heating devices with a Busware CUL868 usb wireless stick.
 
-At the moment the software is at a development stage so please use it with caution.
+At the moment the software is at a stable stage but please use it with caution.
 
-More informations and function will be coming soon.
-
-
-WORK IN PROGRESS
+If you have questions have look at the Issue and Pull Request area on our Github repository or ask a question in the pimatic forum.
 
 Information
 ---------
 
-Because of the support ending for pimatic 0.8.x, we from now on support only pimatic > 0.9.x !
+Because of the support ending for pimatic 0.8.x, we only support pimatic > 0.9.x !
 
 Usage
 ---------
@@ -167,10 +164,15 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
 * v0.9.8
     
     Added LOVF handling (Rootie)
+    
+* v1.0.0
+    
+    Big Thanks to Treban for implementing device discovery, WallThermostat / Fake Wall-Thermostat Support, Fake Shutter-Device, support for pairing devices to each other, support for groupIds and fixing #22 and #12
 
 THX to:
 -------
 * Rootie
+* Treban
 
 ToDo
 -------
@@ -178,6 +180,4 @@ ToDo
 * Add group support to handle groups of devices as one
 * Support for programming Week Profile (at the moment there is only the default program in "Auto Mode")
 * Possibility to pair the shutters and heating elements directly
-* Wall-Thermostat support
 * Implement ConfigValve support to configure the boost duration
-* Implement a fake wall thermostat to get the data from the thermostats every hour
