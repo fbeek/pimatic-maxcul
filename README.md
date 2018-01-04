@@ -15,28 +15,28 @@ Because of the support ending for pimatic 0.8.x, we only support pimatic > 0.9.x
 Usage
 ---------
 
-If device discovery is activeted in the device section of pimatic,
+If device discovery is activated in the device section of pimatic,
 the maxcul plugin automatically detects incoming pairing messages for 20 seconds and reacts accordingly.
 New paired devices are displayed in the discovery overview.
 
-Group support:
+**Group support:**
 All devices support groups. If a group is defined, the command is sent to the device but all devices in the same group react to it.
 
-Pairing support:
+**Pairing support:**
 Devices can be connected to each other. Pairing must be done reciprocally.
 To revoke the paring a facotry reset must be done.
 
-Fake devices:
+**Fake devices:**
 There are two types of fake devices.
-- Fake shutter device
+- **Fake shutter device:**
   The shutter has a optional refContact parameter.
   You can define here a boolean variable expression.  
 
-- Fake wall thermostat device
+- **Fake wall thermostat device:**
   A reference temperature variable "refTemp" (expression) *must*
   be defined in the configuration.
 
-Config transfer button:
+**Config transfer button:**
 All devices have a config tranfer button.
 The general config but also the group ID and pair IDs are sent to the device using the config tranfer button.
 After the configuration is finished, the button can be removed from the gui.
@@ -66,6 +66,10 @@ Example device configuration shutter contact
          {
            "pairId": "0D0CF6",
            "type": "HeatingThermostat"
+         },
+         {
+           "pairId": "178ab2",
+           "type": "WallMountedThermostat"
          }
        ]
     }
@@ -84,6 +88,10 @@ Example device configuration fake shutter contact
         {
           "pairId": "0D0CF6",
           "type": "HeatingThermostat"
+        },
+        {
+          "pairId": "178ab2",
+          "type": "WallMountedThermostat"
         }
       ],
       "refContact": "$contact-kitchen-door.contact"
@@ -175,7 +183,7 @@ Example device configuration fake wall thermostat
       ]
     }
 
-"$tempsensor.temperature" is a room temperature variable.
+"$tempsensor.temperature" is for example a room temperature variable.
 
 ---------------
 
