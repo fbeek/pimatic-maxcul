@@ -14,45 +14,106 @@ Because of the support ending for pimatic 0.8.x, we only support pimatic > 0.9.x
 
 Usage
 ---------
-The maxcul Plugin automatically detects incoming pairing messages and reacts accordingly.
-If you start pimatic with the plugin enable you can enable the debug mode in the settings to get the deviceIds extracted from the incoming pairing messages.
 
-Example Plugin Configuration
+If device discovery is activeted in the device section of pimatic,
+the maxcul plugin automatically detects incoming pairing messages for 20 seconds and reacts accordingly.
+New paired devices are displayed in the discovery overview.
+
+Group support:
+All devices support groups. If a group is defined, the command is sent to the device but all devices in the same group react to it.
+
+Pairing support:
+Devices can be connected to each other. Pairing must be done reciprocally.
+To revoke the paring a facotry reset must be done.
+
+Fake devices:
+There are two types of fake devices.
+- Fake shutter device
+  The shutter has a optional refContact parameter.
+  You can define here a boolean variable expression.  
+
+- Fake wall thermostat device
+  A reference temperature variable "refTemp" (expression) *must*
+  be defined in the configuration.
+
+Config transfer button:
+All devices have a config tranfer button.
+The general config but also the group ID and pair IDs are sent to the device using the config tranfer button.
+After the configuration is finished, the button can be removed from the gui.
+
+---------------
+
+Example plugin configuration
 
     {
       "plugin": "maxcul",
       "serialPortName": "/dev/ttyACM0",
       "homebaseAddress": "123456",
-      "enablePairMode": false,
       "baudrate": 9600
     }
 
-Example device Configuration shutter contact
+---------------
+
+Example device configuration shutter contact
 
     {
       "id": "shutter-1",
       "class": "MaxculShutterContact",
       "name": "Shutter Contact 1",
-      "deviceId": "020BFF"
+      "deviceId": "020BFF",
+      "groupId": "02",
+      "pairIds": [
+         {
+           "pairId": "0D0CF6",
+           "type": "HeatingThermostat"
+         }
+       ]
     }
 
-Example device Configuration push button
+---------------
+
+Example device configuration fake shutter contact
+
+    {
+      "id": "fake-shutter-2",
+      "name": "Fake shutter contact 2",
+      "class": "MaxculFakeShutterContact",
+      "deviceId": "232323",
+      "groupId": "02",
+      "pairIds": [
+        {
+          "pairId": "0D0CF6",
+          "type": "HeatingThermostat"
+        }
+      ],
+      "refContact": "$contact-kitchen-door.contact"
+    }
+
+"$contact-kitchen-door.contact" is for example a HomeduinoRFContactSensor.
+
+---------------
+
+Example device configuration push button
 
     {
       "id": "button-1",
       "class": "MaxculPushButton",
       "name": "Push Button 1",
-      "deviceId": "03f92a"
+      "deviceId": "03f92a",
+      "groupId": "03",
+      "pairIds": []      
     }
 
-Example device Configuration heating thermostat
+---------------
+
+Example device configuration wall thermostat
 
     {
-      "id": "heatingthermostat-01",
-      "class": "MaxculHeatingThermostat",
-      "name": "Thermostat 1",
-      "deviceId": "0D0CF6",
-      "groupId": "00",
+      "id": "wallthermostat-01",
+      "class": "MaxculWallThermostat",
+      "name": "WallThermostat 1",
+      "deviceId": "178ab2",
+      "groupId": "02",
       "guiShowModeControl": true,
       "guiShowPresetControl": true,
       "guiShowTemperatureInput": true,
@@ -65,8 +126,95 @@ Example device Configuration heating thermostat
       "maximumTemperature": 30.5,
       "measurementOffset": 0,
       "windowOpenTime": 60,
-      "windowOpenTemperature": 4.5
-    },
+      "windowOpenTemperature": 4.5,
+      "pairIds": [
+        {
+          "pairId": "232323",
+          "type": "ShutterContact"
+        },
+        {
+          "pairId": "0D0CF6",
+          "type": "HeatingThermostat"
+        }
+      ]
+    }
+
+---------------
+
+Example device configuration fake wall thermostat
+
+    {
+      "id": "fakewallthermostat-02",
+      "class": "MaxculFakeWallThermostat",
+      "name": "FakeWallThermostat 2",
+      "deviceId": "343434",
+      "groupId": "02",
+      "guiShowModeControl": true,
+      "guiShowPresetControl": true,
+      "guiShowTemperatureInput": true,
+      "guiShowMeasuredTemperature": true,
+      "guiShowBatteryState": true,
+      "guiShowConfigButton": true,
+      "ecoTemp": 17,
+      "comfyTemp": 20,
+      "refTemp": "$tempsensor.temperature",
+      "minimumTemperature": 4.5,
+      "maximumTemperature": 30.5,
+      "measurementOffset": 0,
+      "windowOpenTime": 60,
+      "windowOpenTemperature": 4.5,
+      "pairIds": [
+        {
+          "pairId": "232323",
+          "type": "ShutterContact"
+        },
+        {
+          "pairId": "0D0CF6",
+          "type": "HeatingThermostat"
+        }
+      ]
+    }
+
+"$tempsensor.temperature" is a room temperature variable.
+
+---------------
+
+Example device configuration heating thermostat
+
+    {
+      "id": "heatingthermostat-01",
+      "class": "MaxculHeatingThermostat",
+      "name": "Thermostat 1",
+      "deviceId": "0D0CF6",
+      "groupId": "02",
+      "guiShowModeControl": true,
+      "guiShowPresetControl": true,
+      "guiShowTemperatureInput": true,
+      "guiShowMeasuredTemperature": true,
+      "guiShowBatteryState": true,
+      "guiShowConfigButton": true,
+      "guiShowValvePosition": true,
+      "ecoTemp": 17,
+      "comfyTemp": 20,
+      "minimumTemperature": 4.5,
+      "maximumTemperature": 30.5,
+      "measurementOffset": 0,
+      "windowOpenTime": 60,
+      "windowOpenTemperature": 4.5,
+      "pairIds": [
+        {
+          "pairId": "232323",
+          "type": "ShutterContact"
+        },
+        {
+          "pairId": "178ab2",
+          "type": "WallMountedThermostat"
+        }
+      ],
+    }
+
+---------------
+
 
 ### Sponsoring
 
@@ -162,11 +310,11 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
     removed some typos (Rootie)
 
 * v0.9.8
-    
+
     Added LOVF handling (Rootie)
-    
+
 * v1.0.0
-    
+
     Big Thanks to Treban for implementing device discovery, WallThermostat / Fake Wall-Thermostat Support, Fake Shutter-Device, support for pairing devices to each other, support for groupIds and fixing #22 and #12
 
 THX to:
