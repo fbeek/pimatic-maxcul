@@ -333,7 +333,5 @@ THX to:
 ToDo
 -------
 * CUL Credit System support to respect the ISM Band 1% Rules
-* Add group support to handle groups of devices as one
 * Support for programming Week Profile (at the moment there is only the default program in "Auto Mode")
-* Possibility to pair the shutters and heating elements directly
 * Implement ConfigValve support to configure the boost duration
