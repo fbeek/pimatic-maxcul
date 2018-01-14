@@ -48,6 +48,11 @@ module.exports = {
         description: "Group/Room id of the Device"
         type: "string"
         default: "00"
+      refContact:
+        description: "The reference contact expression"
+        type: "string"
+        required: false
+        default: ""
       pairIds:
         description: "List of paired Device"
         type: "array"

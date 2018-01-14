@@ -200,6 +200,9 @@ module.exports = (env) ->
       if @_groupId != "00"
         @maxDriver.sendGroup(@_deviceId,@_groupId,@constructor.deviceType)
         env.logger.info "send groupID #{@_groupId} to device #{@_deviceId}"
+      else
+        @maxDriver.removeGroup(@_deviceId,@constructor.deviceType)
+        env.logger.info "remove group from device #{@_deviceId}"
 
       return @maxDriver.sendConfig(
           @_deviceId,
@@ -320,6 +323,9 @@ module.exports = (env) ->
       if @_groupId != "00"
         @maxDriver.sendGroup(@_deviceId,@_groupId,@constructor.deviceType)
         env.logger.info "send groupID #{@_groupId} to device #{@_deviceId}"
+      else
+        @maxDriver.removeGroup(@_deviceId,@constructor.deviceType)
+        env.logger.info "remove group from device #{@_deviceId}"
 
     destroy: ->
       env.logger.debug "ShutterContact #{@_deviceId} destroyed"
@@ -343,8 +349,31 @@ module.exports = (env) ->
       @_groupId = @config.groupId.toLowerCase()
       @_pairIds = @config.pairIds
       @_index = index
-
       super()
+      @_exprChangeListeners = []
+      @_vars = maxculPlugin.framework.variableManager
+      info = null
+      evaluate = ( =>
+        # wait till VariableManager is ready
+        return @_vars.waitForInit().then( =>
+          unless info?
+            info = @_vars.parseVariableExpression(@config.refContact)
+            @_vars.notifyOnChange(info.tokens, evaluate)
+            @_exprChangeListeners.push evaluate
+
+          switch info.datatype
+            when "numeric" then @_vars.evaluateNumericExpression(info.tokens)
+            when "string" then @_vars.evaluateStringExpression(info.tokens)
+            else
+              assert false
+        ).then((val) =>
+          @changeContactTo(val)
+        ).catch((error) =>
+          env.logger.error "Error on device #{@_deviceId}:", error.message
+        )
+      )
+      if ( @config.refContact != "" )
+        evaluate()
 
     changeContactTo: (contact) ->
       Promise.map(@_pairIds , (pids) =>
@@ -406,7 +435,7 @@ module.exports = (env) ->
     getTemplateName: -> "maxcul-contact"
 
     getBattery:() -> Promise.resolve(@_battery)
-  
+
     _setBattery: (value) ->
       if ( value == 0 )
         @_battery = "ok"
@@ -417,7 +446,7 @@ module.exports = (env) ->
     _setContact: (value) ->
       @_contact = value
       @emit 'contact', value
-      
+
     handleReceivedCmd: (command) ->
 
     transferConfigToDevice: () ->
@@ -429,6 +458,9 @@ module.exports = (env) ->
       if @_groupId != "00"
         @maxDriver.sendGroup(@_deviceId,@_groupId,@constructor.deviceType)
         env.logger.info "send groupID #{@_groupId} to device #{@_deviceId}"
+      else
+        @maxDriver.removeGroup(@_deviceId,@constructor.deviceType)
+        env.logger.info "remove group from device #{@_deviceId}"
 
     destroy: ->
       env.logger.debug "PushButton #{@_deviceId} destroyed"
