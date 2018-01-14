@@ -47,7 +47,7 @@ module.exports = (env) ->
       @pairModeEnabled = true
       setTimeout =>
         @pairModeEnabled = false
-      , 1000 * 30
+      , 1000 * 20
 
     disconnect: ->
       return @comLayer.disconnect()
@@ -236,7 +236,7 @@ module.exports = (env) ->
     sendGroup: (dest, groupId, deviceType) ->
       @sendMsg("22",@baseAddress,dest,groupId,"00","00",deviceType);
 
-    removeGroup: (dest, groupId, deviceType) ->
+    removeGroup: (dest, deviceType) ->
       @sendMsg("23",@baseAddress,dest,"00","00","00",deviceType);
 
     sendPair: (dest, pairId, pairType, deviceType) ->
