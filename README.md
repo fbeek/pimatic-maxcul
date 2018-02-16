@@ -325,6 +325,10 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
 
     Big Thanks to Treban for implementing device discovery, WallThermostat / Fake Wall-Thermostat Support, Fake Shutter-Device, support for pairing devices to each other, support for groupIds and fixing #22 and #12
 
+* v1.0.1
+
+    Updated Bitset module to fix Issue #31
+
 THX to:
 -------
 * Rootie

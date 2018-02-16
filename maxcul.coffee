@@ -4,7 +4,7 @@ module.exports = (env) ->
   assert = env.require 'cassert'
   Moment = env.require 'moment'
   {EventEmitter} = require 'events'
-  BitSet = require 'bitset.js'
+  BitSet = require 'bitset'
 
   MaxDriver = require('./max-driver')(env)
 
