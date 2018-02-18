@@ -12,7 +12,7 @@
     "culpacket.coffee",
     "app/*"
   ],
-  "version": "1.0.1",
+  "version": "1.0.2",
   "homepage": "http://idbtec.de/maxcul",
   "private": false,
   "repository": {
