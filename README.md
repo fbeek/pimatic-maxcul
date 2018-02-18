@@ -329,10 +329,15 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
 
     Updated Bitset module to fix Issue #31
 
+* v1.0.2
+
+    Fixed wrong module name. THX to mwittig for reporting an fixing.
+
 THX to:
 -------
 * Rootie
 * Treban
+* Mwittig
 
 ToDo
 -------
