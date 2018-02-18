@@ -1,7 +1,7 @@
 module.exports = (env) ->
 
   {EventEmitter} = require 'events'
-  BitSet = require 'bitset.js'
+  BitSet = require 'bitset'
   Promise = env.require 'bluebird'
   Moment = env.require 'moment'
   Sprintf = require("sprintf-js").sprintf
