@@ -333,6 +333,10 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
 
     Fixed wrong module name. THX to mwittig for reporting an fixing.
 
+* v1.0.3
+  
+    Fixed broken function call #33
+
 THX to:
 -------
 * Rootie
