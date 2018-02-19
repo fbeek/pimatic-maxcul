@@ -416,7 +416,7 @@ module.exports = (env) ->
 
         WallthermostatState =
           src : packet.getSource()
-          mode : rawBitData.getRange(0,1)
+          mode : rawBitData.slice(0,1)
           desiredTemperature : (('0x'+(packet.getRawPayload().substr(4,2))) & 0x7F) / 2.0
           measuredTemperature : 0
           dstSetting : rawBitData.get(3)
@@ -467,7 +467,7 @@ module.exports = (env) ->
         rawData = payloadParser.parse(rawPayloadBuffer)
 
         rawBitData = new BitSet(rawData.bits);
-        rawMode = rawBitData.getRange(0,1);
+        rawMode = rawBitData.slice(0,1);
         #If the control mode is not "temporary", the cube sends the current (measured) temperature
         if( rawData.untilTwo && rawMode[0] != 2)
           calculatedMeasuredTemperature = (((rawData.untilOne &0x01)<<8) + rawData.untilTwo)/10;
