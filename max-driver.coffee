@@ -465,9 +465,7 @@ module.exports = (env) ->
         rawData = payloadParser.parse(rawPayloadBuffer)
 
         rawBitData = new BitSet(rawData.bits);
-        console.log(rawBitData);
         rawMode = rawBitData.slice(0,1).toString(16);
-        console.log(rawMode);
         #If the control mode is not "temporary", the cube sends the current (measured) temperature
         if( rawData.untilTwo && rawMode != 2)
           calculatedMeasuredTemperature = (((rawData.untilOne &0x01)<<8) + rawData.untilTwo)/10;
