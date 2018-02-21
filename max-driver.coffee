@@ -206,7 +206,6 @@ module.exports = (env) ->
       length = Sprintf('%02x',length)
 
       packet.setRawPacket(length+data)
-
       return new Promise( (resolve, reject) =>
         packet.resolve = resolve
         packet.reject = reject
@@ -291,7 +290,6 @@ module.exports = (env) ->
       val1 = ((val2 & 0x100)>>1) | ((desiredTemp * 2) & 0x7F)
       val2 = val2 & 0xFF
       payload = Sprintf('%02x%02x',val1,val2)
-
       if groupId == "00"
         return @sendMsg("42",@baseAddress,dest,payload,"00","00",deviceType)
       else
@@ -416,7 +414,7 @@ module.exports = (env) ->
 
         WallthermostatState =
           src : packet.getSource()
-          mode : rawBitData.slice(0,1)
+          mode : rawBitData.slice(0,1).toString(16)
           desiredTemperature : (('0x'+(packet.getRawPayload().substr(4,2))) & 0x7F) / 2.0
           measuredTemperature : 0
           dstSetting : rawBitData.get(3)
@@ -467,9 +465,11 @@ module.exports = (env) ->
         rawData = payloadParser.parse(rawPayloadBuffer)
 
         rawBitData = new BitSet(rawData.bits);
-        rawMode = rawBitData.slice(0,1);
+        console.log(rawBitData);
+        rawMode = rawBitData.slice(0,1).toString(16);
+        console.log(rawMode);
         #If the control mode is not "temporary", the cube sends the current (measured) temperature
-        if( rawData.untilTwo && rawMode[0] != 2)
+        if( rawData.untilTwo && rawMode != 2)
           calculatedMeasuredTemperature = (((rawData.untilOne &0x01)<<8) + rawData.untilTwo)/10;
         else
           calculatedMeasuredTemperature = 0;
@@ -478,14 +478,14 @@ module.exports = (env) ->
           calculatedMeasuredTemperature = 0
         untilString = "";
 
-        if( rawData.untilThree && rawMode[0] == 2)
+        if( rawData.untilThree && rawMode == 2)
           timeData = ParseDateTime(rawData.untilOne,rawData.untilTwo,rawData.untilThree)
           untilString = timeData.dateString;
         #Todo: Implement offset handling
 
         thermostatState =
           src : packet.getSource()
-          mode : rawMode[0]
+          mode : rawMode
           desiredTemperature : (rawData.desiredTemp&0x7F)/2.0
           valvePosition : rawData.valvePosition
           measuredTemperature : calculatedMeasuredTemperature

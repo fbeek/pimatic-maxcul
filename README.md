@@ -337,6 +337,10 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
   
     Fixed broken function call #33
 
+* v1.0.4
+
+    Fixed a bug in the mode handling #34 and added a default value for the battery state of the shutter contact
+
 THX to:
 -------
 * Rootie
