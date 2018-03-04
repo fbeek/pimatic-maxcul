@@ -345,11 +345,19 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
 
     Cleanup
 
-THX to:
+* v1.0.6
+
+    Fixed #36 by making the Wall-Thermostat WindowOpenTemperature configurable
+
+THX for development Support:
 -------
 * Rootie
 * Treban
 * Mwittig
+
+THX for donations:
+-------
+* L. Bellwald
 
 ToDo
 -------

@@ -273,6 +273,10 @@ module.exports = {
         description: "The defined measurement offset"
         type: "number"
         default: 0
+      windowOpenTemperature:
+        description: "The defined window open temperature mode temperature"
+        type: "number"
+        default: 4.5
     }
   },
   MaxculFakeWallThermostat:{
@@ -354,6 +358,10 @@ module.exports = {
         description: "The defined measurement offset"
         type: "number"
         default: 0
+      windowOpenTemperature:
+        description: "The defined window open temperature mode temperature"
+        type: "number"
+        default: 4.5
     }
   }
 }
