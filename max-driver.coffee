@@ -303,11 +303,15 @@ module.exports = (env) ->
           '01'
         when 'boost'
           '11'
+      
+      if isNaN(temperature) or typeof temperature != "number"
+        return Promise.reject "Invalid temperature supplied"
+
       if temperature <= 4.5
         temperature = 4.5
       if temperature >= 30.5
         temperature = 30.5
-
+      
       if mode is 'auto' and (typeof temperature is "undefined" or temperature is null)
         payloadHex = "00"
       else
