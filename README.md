@@ -349,6 +349,10 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
 
     Fixed #36 by making the Wall-Thermostat WindowOpenTemperature configurable
 
+* v1.0.7
+   
+   Little optimizations.
+
 THX for development Support:
 -------
 * Rootie
