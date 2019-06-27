@@ -23,7 +23,7 @@
   "dependencies": {
     "binary-parser": "^1.1.5",
     "bitset": "^4.1.0",
-    "serialport": "^3.0.0",
+    "serialport": "^6.2.2",
     "sprintf-js": "^1.0.3"
   },
   "peerDependencies": {
