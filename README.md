@@ -1,6 +1,10 @@
 pimatic-maxcul
 =======================
 
+***Width the release of Version 1.1.0 we have dropped Node 4 Support and added compitibility from Nodejs 8 to 10.16,
+v12 should Work also but is not tested. If you use an older Version of NodeJs as v8 DO NOT UPDATE.  
+It CAN work but is not tested !!!***
+
 Pimatic plugin to control MAX! home heating devices with a Busware CUL868 usb wireless stick.
 
 At the moment the software is at a stable stage but please use it with caution.
@@ -351,6 +355,11 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
    
    Little optimizations.
 
+* v1.1.0
+
+   Added support for NodeJs 8 and 10, v12 should also work
+   Also added some optimizations in the communaction layer for the serial port / cul communication
+	
 THX for development Support:
 -------
 * Rootie

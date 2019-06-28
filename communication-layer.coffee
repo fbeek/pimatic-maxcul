@@ -2,8 +2,9 @@ module.exports = (env) ->
 
   {EventEmitter} = require 'events'
 
-  serialport = require 'serialport'
-  SerialPort = serialport.SerialPort
+  SerialPort = require 'serialport'
+  Readline = SerialPort.parsers.Readline
+  # SerialPort = serialport.SerialPort
 
   Promise = env.require 'bluebird'
   Promise.promisifyAll(SerialPort.prototype)
@@ -23,9 +24,9 @@ module.exports = (env) ->
       @_currentSentPromise = null
 
       @_serialDeviceInstance = new SerialPort(serialPortName, {
-        baudrate: baudrate,
-        parser: serialport.parsers.readline("\n")
-      }, openImmediately = no)
+        baudRate: baudrate,
+        autoOpen: false
+      })
 
     connect: () ->
       @ready = no
@@ -33,6 +34,8 @@ module.exports = (env) ->
       @_serialDeviceInstance.removeAllListeners('error')
       @_serialDeviceInstance.removeAllListeners('data')
       @_serialDeviceInstance.removeAllListeners('close')
+
+      @parser.removeAllListeners('data') if @parser?
 
       @removeAllListeners('newPacketForTransmission')
       @removeAllListeners('readyForNextPacketTransmission')
@@ -45,7 +48,27 @@ module.exports = (env) ->
         @emit 'close'
         @removeAllListeners('newPacketForTransmission')
         @removeAllListeners('readyForNextPacketTransmission')
+      
+      @parser = @_serialDeviceInstance.pipe(new Readline({ delimiter: '\n', encoding: 'ascii' }))
 
+      @parser.on 'data', (data) =>
+        env.logger.debug "incoming raw data from CUL: #{data}"
+        dataString = "#{data}"
+        dataString = dataString.replace(/[\r]/g, '')
+
+        if (/^V(.*)/.test(dataString))
+          env.logger.debug "Got Version String"
+          #data contains cul version string
+          @emit('culFirmwareVersion', dataString)
+          @ready = yes
+          @emit('ready')
+        else if (/^Z(.*)/.test(dataString))
+          @emit('culDataReceived',dataString)
+        else if (/^LOVF/.test(dataString))
+          @_current.setStatus('sendlimit')
+        else
+          env.logger.info "received unknown data: #{dataString}"
+      
       @on('newPacketForTransmission', =>
         @processMessageQueue()
       )
@@ -53,64 +76,50 @@ module.exports = (env) ->
       @on('readyForNextPacketTransmission', =>
         @processMessageQueue()
       )
+      
+      return new Promise( (resolve, reject) =>
+        resolver = resolve
+        @_open().then(() =>
+          env.logger.info "serialPort #{@serialPortName} is open!"
 
-      return @_serialDeviceInstance.openAsync().then( =>
-        resolver = null
-        timeout = 30000
+          #check the version of the cul firmware
+          env.logger.debug "check CUL Firmware version"
+          @_serialDeviceInstance.writeAsync('V\n').then( =>
+            env.logger.debug "Requested CUL Version..."
+          ).catch(reject)
+        #set resolver and resolve the promise if on ready event
 
-        env.logger.info "serialPort #{@serialPortName} is open!"
-
-        @_serialDeviceInstance.on 'data', (data) =>
-          env.logger.debug "incoming raw data from CUL: #{data}"
-          dataString = "#{data}"
-          dataString = dataString.replace(/[\r]/g, '')
-
-          if (/^V(.*)/.test(dataString))
-            #data contains cul version string
-            @emit('culFirmwareVersion', dataString)
-            @ready = yes
-            @emit('ready')
-          else if (/^Z(.*)/.test(dataString))
-            @emit('culDataReceived',dataString)
-          else if (/^LOVF/.test(dataString))
-            @_current.setStatus('sendlimit')
-          else
-            env.logger.info "received unknown data: #{dataString}"
-
-
-        return new Promise( (resolve, reject) =>
-          Promise.delay(1000).then( =>
-            #check the version of the cul firmware
-            env.logger.debug "check CUL Firmware version"
-            @_serialDeviceInstance.writeAsync('V\n').then( =>
-              env.logger.debug "Requested CUL Version...\n"
-            ).catch(reject)
-          ).delay(2000).then( =>
-            # enable max mode of the cul firmware and rssi reporting
-            env.logger.debug "enable MAX! Mode of the CUL868"
-            @_serialDeviceInstance.writeAsync('X20\n').then( =>
-              @_serialDeviceInstance.writeAsync('Zr\n').then( =>
-                @_serialDeviceInstance.writeAsync('Za'+@_baseAddress+'\n')
-              )
-            ).catch(reject)
-          ).done()
-          #set resolver and resolve the promise if on ready event
-          resolver = resolve
-          @once("ready", resolver)
-        ).timeout(timeout).catch( (err) =>
+        @once("ready", () => 
+          env.logger.debug("Trigger Resolver on ready")
+          # enable max mode of the cul firmware and rssi reporting
+          env.logger.debug "enable MAX! Mode of the CUL868"
+          @_serialDeviceInstance.writeAsync('X20\n').then( =>
+            @_serialDeviceInstance.writeAsync('Zr\n').then( =>
+              @_serialDeviceInstance.writeAsync('Za'+@_baseAddress+'\n')
+            )
+          ).catch(reject)
+          resolver()
+         )
+        ).timeout(60000).catch( (err) =>
           if err.name is "TimeoutError"
             env.logger.info ('Timeout on CUL connect, cul is available but not responding')
-        )
+          )
       ).catch( (err) =>
-        env.logger.info ("Can not connect to serial port, cause: #{err.cause}")
+        env.logger.info ("Can not connect to serial port, cause: #{err}")
       )
 
     disconnect: ->
-      @serialPort.closeAsync()
+      @_serialDeviceInstance.closeAsync()
+
+    _open: () ->
+      unless @_serialDeviceInstance.isOpen
+        @_serialDeviceInstance.openAsync()
+      else
+        Promise.resolve()
 
     # write data to the CUL device
     serialWrite: (data) ->
-      if( @_serialDeviceInstance.isOpen() )
+      if( @_serialDeviceInstance.isOpen )
         command = "Zs"+data+"\n"
         return @_serialDeviceInstance.writeAsync(command).then( =>
           env.logger.debug ("Send Packet to CUL: #{data}, awaiting drain event")

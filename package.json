@@ -1,8 +1,65 @@
 {
-  "name": "pimatic-maxcul",
+  "_from": "github:fbeek/pimatic-maxcul#feature/node_v12_compatibility",
+  "_id": "pimatic-maxcul@1.0.6",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/pimatic-maxcul",
+  "_phantomChildren": {
+    "commander": "2.20.0",
+    "detect-libc": "1.0.3",
+    "github-from-package": "0.0.0",
+    "nan": "2.14.0",
+    "node-abi": "2.9.0",
+    "noop-logger": "0.1.1",
+    "npmlog": "4.1.2",
+    "os-homedir": "1.0.2",
+    "promirepl": "1.0.1",
+    "prompt-list": "3.2.0",
+    "pump": "2.0.1",
+    "rc": "1.2.8",
+    "safe-buffer": "5.1.2",
+    "simple-get": "2.8.1",
+    "tar-fs": "1.16.3",
+    "tunnel-agent": "0.6.0",
+    "which-pm-runs": "1.0.0"
+  },
+  "_requested": {
+    "type": "git",
+    "raw": "fbeek/pimatic-maxcul#feature/node_v12_compatibility",
+    "rawSpec": "fbeek/pimatic-maxcul#feature/node_v12_compatibility",
+    "saveSpec": "github:fbeek/pimatic-maxcul#feature/node_v12_compatibility",
+    "fetchSpec": null,
+    "gitCommittish": "feature/node_v12_compatibility"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "github:fbeek/pimatic-maxcul#dacb0b3b561744abdb89c802d8edf92e146f677b",
+  "_spec": "fbeek/pimatic-maxcul#feature/node_v12_compatibility",
+  "_where": "/app/mounts/usb-stick/pimatic-app-v8",
+  "author": {
+    "name": "Florian in der Beek",
+    "email": "florian@idbtec.de",
+    "url": "http://idbtec.de"
+  },
+  "bugs": {
+    "url": "https://github.com/fbeek/pimatic-maxcul/issues"
+  },
+  "bundleDependencies": false,
+  "configSchema": "maxcul-config-schema.coffee",
+  "dependencies": {
+    "binary-parser": "^1.4.0",
+    "bitset": "^5.0.5",
+    "serialport": "^6.2.2",
+    "sprintf-js": "^1.1.2"
+  },
+  "deprecated": false,
   "description": "A pimatic plugin to control the MAX! home heating solutions with a Busware CUL868 device.",
-  "author": "Florian in der Beek <florian@idbtec.de> (http://idbtec.de)",
-  "main": "maxcul",
+  "engines": {
+    "node": ">=4.5.x",
+    "npm": ">=2.15.x"
+  },
   "files": [
     "maxcul.coffee",
     "maxcul-config-schema.coffee",
@@ -12,25 +69,16 @@
     "culpacket.coffee",
     "app/*"
   ],
-  "version": "1.0.6",
   "homepage": "http://idbtec.de/maxcul",
+  "main": "maxcul",
+  "name": "pimatic-maxcul",
+  "peerDependencies": {
+    "pimatic": "0.9.*"
+  },
   "private": false,
   "repository": {
     "type": "git",
     "url": "git://github.com/fbeek/pimatic-maxcul.git"
   },
-  "configSchema": "maxcul-config-schema.coffee",
-  "dependencies": {
-    "binary-parser": "^1.1.5",
-    "bitset": "^4.1.0",
-    "serialport": "^3.0.0",
-    "sprintf-js": "^1.0.3"
-  },
-  "peerDependencies": {
-    "pimatic": "0.9.*"
-  },
-  "engines": {
-    "node": ">=4.5.x",
-    "npm": ">=2.15.x"
-  }
+  "version": "1.0.6"
 }
