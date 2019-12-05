@@ -84,20 +84,25 @@ module.exports = (env) ->
 
           #check the version of the cul firmware
           env.logger.debug "check CUL Firmware version"
-          @_serialDeviceInstance.writeAsync('V\n').then( =>
-            env.logger.debug "Requested CUL Version..."
-          ).catch(reject)
+          Promise.delay(2000).then( =>
+            @_serialDeviceInstance.writeAsync('V\n').then( =>
+              env.logger.debug "Requested CUL Version..."
+            ).catch(reject)
+          )
+
         #set resolver and resolve the promise if on ready event
 
         @once("ready", () => 
           env.logger.debug("Trigger Resolver on ready")
           # enable max mode of the cul firmware and rssi reporting
           env.logger.debug "enable MAX! Mode of the CUL868"
-          @_serialDeviceInstance.writeAsync('X20\n').then( =>
-            @_serialDeviceInstance.writeAsync('Zr\n').then( =>
-              @_serialDeviceInstance.writeAsync('Za'+@_baseAddress+'\n')
-            )
-          ).catch(reject)
+          Promise.delay(2000).then( =>
+            @_serialDeviceInstance.writeAsync('X20\n').then( =>
+              @_serialDeviceInstance.writeAsync('Zr\n').then( =>
+                @_serialDeviceInstance.writeAsync('Za'+@_baseAddress+'\n')
+              )
+            ).catch(reject)
+          )
           resolver()
          )
         ).timeout(60000).catch( (err) =>
