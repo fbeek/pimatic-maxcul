@@ -359,6 +359,10 @@ pimatic system and set the mode (auto/boost/manuel) and switch between the comfy
 
    Added support for NodeJs 8 and 10, v12 should also work
    Also added some optimizations in the communaction layer for the serial port / cul communication
+
+* v1.1.1
+
+   Added fix from Treban for the connection problems on newer Raspian version.
 	
 THX for development Support:
 -------
