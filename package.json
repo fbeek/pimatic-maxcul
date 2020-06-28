@@ -51,7 +51,7 @@
   "dependencies": {
     "binary-parser": "^1.4.0",
     "bitset": "^5.0.5",
-    "serialport": "^6.2.2",
+    "serialport": "^8.0.8",
     "sprintf-js": "^1.1.2"
   },
   "deprecated": false,
